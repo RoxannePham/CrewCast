@@ -339,7 +339,7 @@ const HERO_HEIGHT = 300;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.backgroundPrimary },
   heroContainer: { height: HERO_HEIGHT, position: 'relative' },
-  heroImage: { width: '100%', height: HERO_HEIGHT, resizeMode: 'cover' as any },
+  heroImage: { width: '100%', height: HERO_HEIGHT },
   heroOverlay: {
     position: 'absolute', top: 0, left: 0, right: 0,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
