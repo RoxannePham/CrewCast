@@ -9,6 +9,7 @@ import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { colors, typography, spacing, radius, shadow } from '@/constants/theme';
 import { SearchBar } from '@/components/ui/SearchBar';
+import { OrgAvatar } from '@/components/ui/OrgAvatar';
 import { mockOrganizations, Organization } from '@/data/mockOrganizations';
 
 const CATEGORIES = ['All', 'Tech', 'Cultural', 'Identity', 'Arts', 'Sports', 'Academic', 'Pre-Professional', 'Student Government'];
@@ -25,15 +26,12 @@ const CATEGORY_ICONS: Record<string, string> = {
 };
 
 function OrgCard({ org, onPress }: { org: Organization; onPress: () => void }) {
-  const iconName = CATEGORY_ICONS[org.category] || 'business-outline';
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [styles.orgCard, shadow.card, { transform: [{ scale: pressed ? 0.98 : 1 }] }]}
     >
-      <View style={[styles.orgIcon, { backgroundColor: getCategoryColor(org.category) + '25' }]}>
-        <Ionicons name={iconName as any} size={22} color={getCategoryColor(org.category)} />
-      </View>
+      <OrgAvatar name={org.name} imageUrl={org.imageUrl} category={org.category} size={48} />
       <View style={styles.orgInfo}>
         <Text style={styles.orgName} numberOfLines={1}>{org.name}</Text>
         <Text style={styles.orgDesc} numberOfLines={2}>{org.description}</Text>

@@ -16,6 +16,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useNotifications } from '@/context/NotificationsContext';
 import { useChat } from '@/context/ChatContext';
 import { MockEvent } from '@/data/mockEvents';
+import { OrgAvatar } from '@/components/ui/OrgAvatar';
 import { mockOrganizations, Organization } from '@/data/mockOrganizations';
 
 function EventHeroCard({ event, onPress }: { event: MockEvent; onPress: () => void }) {
@@ -109,15 +110,12 @@ const ORG_COLOR_MAP: Record<string, string> = {
 
 function OrgCard({ org, onPress }: { org: Organization; onPress: () => void }) {
   const catColor = ORG_COLOR_MAP[org.category] || colors.textMuted;
-  const iconName = ORG_ICON_MAP[org.category] || 'business-outline';
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [styles.orgCard, shadow.card, { transform: [{ scale: pressed ? 0.97 : 1 }] }]}
     >
-      <View style={[styles.orgCardIcon, { backgroundColor: catColor + '20' }]}>
-        <Ionicons name={iconName as any} size={22} color={catColor} />
-      </View>
+      <OrgAvatar name={org.name} imageUrl={org.imageUrl} category={org.category} size={44} />
       <Text style={styles.orgCardName} numberOfLines={2}>{org.name}</Text>
       <View style={[styles.orgCardBadge, { backgroundColor: catColor + '18' }]}>
         <Text style={[styles.orgCardBadgeText, { color: catColor }]}>{org.category}</Text>

@@ -22,6 +22,7 @@ export interface OnboardingProfile {
   orgRole: string;
   contactEmail: string;
   hostBio: string;
+  profilePhotoUri: string | null;
 }
 
 const EMPTY_PROFILE: OnboardingProfile = {
@@ -42,6 +43,13 @@ const EMPTY_PROFILE: OnboardingProfile = {
   orgRole: '',
   contactEmail: '',
   hostBio: '',
+  profilePhotoUri: null,
+};
+
+export type SignInResult = {
+  success: boolean;
+  error?: 'no_account' | 'empty_fields';
+  message?: string;
 };
 
 interface AuthContextValue {
@@ -52,7 +60,7 @@ interface AuthContextValue {
   onboardingProfile: OnboardingProfile;
   profileSummary: string;
   isProfileComplete: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<SignInResult>;
   signUp: (name: string, email: string, password: string, role: 'worker' | 'host', extra?: Partial<OnboardingProfile>) => Promise<void>;
   signOut: () => Promise<void>;
   completeOnboarding: () => Promise<void>;
@@ -125,18 +133,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  async function signIn(email: string, password: string) {
-    const found = [...mockWorkers, ...mockHosts].find(u => u.email.toLowerCase() === email.toLowerCase());
-    const authUser = found || mockWorkers[0];
-    setUser(authUser);
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(authUser));
+  async function signIn(email: string, password: string): Promise<SignInResult> {
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
+      return { success: false, error: 'empty_fields', message: 'Please enter your email and password.' };
+    }
+
+    const found = [...mockWorkers, ...mockHosts].find(
+      u => u.email.toLowerCase() === trimmedEmail
+    );
+
+    if (!found) {
+      return { success: false, error: 'no_account', message: 'No account found with that email.' };
+    }
+
+    setUser(found);
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(found));
     setHasCompletedOnboarding(true);
     await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
+    return { success: true };
   }
 
   async function signUp(name: string, email: string, password: string, role: 'worker' | 'host', extra?: Partial<OnboardingProfile>) {
     const template = role === 'worker' ? mockWorkers[0] : mockHosts[0];
-    const authUser = { ...template, name, email };
+    const authUser = { ...template, name, email: email.trim().toLowerCase() };
     setUser(authUser as AuthUser);
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(authUser));
     if (extra) {

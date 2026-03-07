@@ -1,0 +1,285 @@
+==================================================
+
+CREWCAST — FULL CORRECTIVE IMPLEMENTATION PROMPT
+==================================================
+
+You are updating my existing CrewCast mobile app.
+Do NOT rebuild the app from scratch.
+All changes must be applied inside the current Expo + React Native + TypeScript codebase.
+
+Follow all instructions carefully.
+
+GLOBAL ENGINEERING RULES
+Do NOT recreate any screens from scratch unless required.
+Use existing components, contexts, routes, and mock datasets whenever possible.
+Follow the current design language unless polish is needed.
+Use TypeScript everywhere.
+Keep all new logic modular, typed, and maintainable.
+Implement full end‑to‑end behavior, not UI-only shells.
+Use mock/local data where backend is not available.
+Never expose raw IDs in the user-facing UI.
+Keep file organization consistent with the current repo.
+==================================================
+
+1. FIX “MY APPLICATIONS” PAGE
+==================================================
+
+Problem
+It currently shows internal IDs (r1, r6, …) instead of event names.
+
+Solution Requirements
+Join each application with the events dataset using:
+
+
+event = events.find(e => e.id === application.eventId)
+Display:
+event title
+host/organization name
+status badge
+relative “Applied X days ago”
+If event not found:
+show "Unknown Event"
+do not show raw IDs
+UI Format Example
+
+
+[Pending] Rutgers Tech Mixer
+Hosted by Rutgers AI Club
+Applied 1 day ago
+Apply this fix everywhere raw IDs appear.
+==================================================
+
+2. FIX LOGIN VALIDATION
+==================================================
+
+Validation Rules
+Trim whitespace for both fields
+Convert email to lowercase before lookup
+Email lookup is case-insensitive
+Reject when:
+no user with email exists → “No account found with that email”
+password is incorrect → “Incorrect password”
+email or password empty → “Please enter your email and password”
+Do not create users during login
+Only signup should create new accounts
+UI Requirements
+Inline error message displayed under the inputs
+Button disabled during submission
+Loading spinner or loading state
+No double submit allowed
+Implementation Location
+Place logic inside AuthContext or the cleanest auth utility file.
+==================================================
+
+3. ADD REAL PROFILE PHOTO UPLOAD (SIGN UP + PROFILE)
+==================================================
+
+Requirements
+Use Expo Image Picker (or existing project wrapper)
+User selects a photo from the device
+Save profilePhoto: string URI into local user state
+Show image preview immediately after selection
+Use uploaded photo everywhere:
+profile page
+candidate cards
+chat avatars
+applications
+username displays
+Fallback
+If no photo uploaded:
+
+generate placeholder avatar using user initials
+New UI States
+“Upload profile photo”
+“Change photo”
+Optional: “Remove photo”
+File Updates
+app/auth/signup.tsx
+app/(tabs)/profile.tsx
+components/ui/Avatar.tsx
+==================================================
+
+4. ORGANIZATIONS: ADD PROFILE IMAGES / LOGOS
+==================================================
+
+Image Architecture (VERY IMPORTANT)
+No scraping Instagram or Linktree at runtime
+No parsing HTML
+No unreliable network scraping
+Images must be seeded static data
+Allowed sources
+Local asset files (/assets/orgs/*)
+Stable public URLs manually added to dataset
+NOT allowed
+Runtime scraping
+API calls to Instagram
+Network fetch logic to parse HTML
+Dataset Update
+Each organization entry supports:
+
+
+
+imageUrl?: string
+Rendering Logic
+If imageUrl exists AND loads → show circular logo
+If fails OR missing → fallback to initials avatar
+(use first two letters of org name: Rutgers AI Club → RA)
+==================================================
+
+5. IMPROVE ORGANIZATION DATA MODEL
+==================================================
+
+New Organization Interface
+
+
+export interface Organization {
+  id: string;
+  name: string;
+  category: OrganizationCategory;
+  campus: string;
+  description: string;
+  primaryLink?: string;
+  instagram?: string;
+  linktree?: string;
+  website?: string;
+  email?: string;
+  imageUrl?: string; // seeded static or stable public URL
+  tags: string[];
+}
+Category Type
+
+
+export type OrganizationCategory =
+  | "Tech"
+  | "Cultural"
+  | "Identity"
+  | "Arts"
+  | "Sports"
+  | "Academic"
+  | "Pre-Professional"
+  | "Student Government";
+==================================================
+
+6. IMPROVE APPLICATION DATA DISPLAY
+==================================================
+
+Create a derived view model that merges:
+
+Application fields
+Event fields
+Applicant profile data (for submitted snapshot)
+Do NOT show raw IDs.
+Display-friendly fields required:
+event title
+host / organizer
+status
+submittedAt (relative time)
+whether application contains:
+resume
+onboarding summary
+Add the following to Application model:
+
+
+resumeUri?: string
+profileSummary?: string
+==================================================
+
+7. UX POLISH REQUIREMENTS
+==================================================
+
+Improve:
+
+Login
+inline errors
+loading state
+disabled submit during validation
+Applications Page
+better spacing
+clear hierarchy:
+title
+metadata
+status badge
+cleaner card alignment
+Profile Photo Upload
+allow retake/change
+clean preview UI
+fallback initials styled consistently with Avatar.tsx
+Organizations
+high-quality fallback avatar with initials
+image load failure caught gracefully
+==================================================
+
+8. IMAGE HANDLING RULES (ORG & USER)
+==================================================
+
+OrgAvatar & Avatar Components Must Support:
+
+
+{
+  imageUrl?: string
+  name: string
+  size?: number
+}
+Initials Algorithm
+
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 1) return parts[0][0].toUpperCase()
+  return (parts[0][0] + parts[1][0]).toUpperCase()
+}
+==================================================
+
+9. REQUIRED FILE UPDATES
+==================================================
+
+New Files
+
+
+data/mockOrganizations.ts
+components/ui/OrgAvatar.tsx
+components/cards/OrganizationCard.tsx
+app/organizations/index.tsx
+app/organizations/[id].tsx
+Updated
+
+
+context/AuthContext.tsx
+context/AppContext.tsx
+data/mockUsers.ts
+data/mockApplications.ts
+components/ui/Avatar.tsx
+app/auth/login.tsx
+app/auth/signup.tsx
+app/(tabs)/profile.tsx
+app/(tabs)/applications.tsx  (or your actual My Applications path)
+==================================================
+
+10. DELIVERABLE SUMMARY (AFTER IMPLEMENTATION)
+==================================================
+
+Provide a concise summary listing:
+
+files created
+files modified
+how login validation works now
+how application titles are resolved now
+how user profile image upload works
+how organization images load & fallback
+what still uses mock/local data
+any implementation assumptions
+==================================================
+
+FINAL GOAL
+==================================================
+
+After applying these fixes, the app should:
+
+Show real event names (not IDs) in My Applications
+Reject invalid logins with clear error messages
+Allow real profile photo upload during signup & editing
+Display real org logos or fallback avatars
+Render applications with polished, human-readable data
+Remain stable, typed, and maintainable
+Use seeded static org image data reliably
+==================================================

@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { colors, typography, spacing, radius, shadow } from '@/constants/theme';
+import { OrgAvatar } from '@/components/ui/OrgAvatar';
 import { mockOrganizations } from '@/data/mockOrganizations';
 
 function getCategoryColor(category: string): string {
@@ -109,9 +110,7 @@ export default function OrganizationDetailScreen() {
       </Pressable>
 
       <View style={styles.heroArea}>
-        <View style={[styles.heroIcon, { backgroundColor: catColor + '20' }]}>
-          <Ionicons name={iconName as any} size={40} color={catColor} />
-        </View>
+        <OrgAvatar name={org.name} imageUrl={org.imageUrl} category={org.category} size={80} />
         <Text style={styles.orgName}>{org.name}</Text>
         <View style={styles.metaRow}>
           <View style={[styles.catBadge, { backgroundColor: catColor + '20' }]}>

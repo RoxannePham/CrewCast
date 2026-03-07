@@ -1,7 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { typography, radius } from '@/constants/theme';
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0][0]?.toUpperCase() || '?';
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
 
 interface AvatarProps {
   name: string;
@@ -9,6 +15,7 @@ interface AvatarProps {
   backgroundColor?: string;
   size?: number;
   imageUri?: string;
+  imageUrl?: string;
   imageSource?: any;
   showBorder?: boolean;
 }
@@ -19,34 +26,40 @@ export function Avatar({
   backgroundColor,
   size = 40,
   imageUri,
+  imageUrl,
   imageSource,
   showBorder = false,
 }: AvatarProps) {
   const bgColor = backgroundColor || avatarColor || '#CDB9FF';
-  const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  const initials = getInitials(name);
   const fontSize = size * 0.38;
+  const [imgFailed, setImgFailed] = useState(false);
 
   const borderStyle = showBorder ? {
     borderWidth: 3,
     borderColor: '#fff',
   } : {};
 
-  if (imageSource) {
+  const resolvedUri = imageUrl || imageUri;
+
+  if (imageSource && !imgFailed) {
     return (
       <Image
         source={imageSource}
         style={[{ width: size, height: size, borderRadius: size / 2 }, borderStyle]}
         contentFit="cover"
+        onError={() => setImgFailed(true)}
       />
     );
   }
 
-  if (imageUri) {
+  if (resolvedUri && !imgFailed) {
     return (
       <Image
-        source={{ uri: imageUri }}
+        source={{ uri: resolvedUri }}
         style={[{ width: size, height: size, borderRadius: size / 2 }, borderStyle]}
         contentFit="cover"
+        onError={() => setImgFailed(true)}
       />
     );
   }

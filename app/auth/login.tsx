@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, Pressable,
-  ScrollView, Platform, KeyboardAvoidingView, Alert
+  ScrollView, Platform, KeyboardAvoidingView, ActivityIndicator
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -18,35 +18,51 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
   const botPad = Platform.OS === 'web' ? 34 : insets.bottom;
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Missing Fields', 'Please enter your email and password.');
+    setErrorMsg('');
+    const trimEmail = email.trim();
+    const trimPass = password.trim();
+
+    if (!trimEmail || !trimPass) {
+      setErrorMsg('Please enter your email and password.');
       return;
     }
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     try {
-      await signIn(email, password);
-      router.replace('/(tabs)');
+      const result = await signIn(trimEmail, trimPass);
+      if (result.success) {
+        router.replace('/(tabs)');
+      } else {
+        setErrorMsg(result.message || 'Login failed.');
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      }
     } catch (e) {
-      Alert.alert('Error', 'Login failed. Try again.');
+      setErrorMsg('Something went wrong. Try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDemoLogin = async () => {
+    setErrorMsg('');
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setLoading(true);
     try {
-      await signIn('alex@nyu.edu', 'demo');
-      router.replace('/(tabs)');
+      const result = await signIn('alex@nyu.edu', 'demo');
+      if (result.success) {
+        router.replace('/(tabs)');
+      } else {
+        setErrorMsg(result.message || 'Demo login failed.');
+      }
     } catch (e) {
-      Alert.alert('Error', 'Demo login failed.');
+      setErrorMsg('Demo login failed.');
     } finally {
       setLoading(false);
     }
@@ -74,30 +90,32 @@ export default function LoginScreen() {
         <View style={styles.form}>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Email</Text>
-            <View style={styles.inputWrap}>
-              <Ionicons name="mail-outline" size={18} color={colors.textMuted} style={styles.inputIcon} />
+            <View style={[styles.inputWrap, !!errorMsg && styles.inputWrapError]}>
+              <Ionicons name="mail-outline" size={18} color={errorMsg ? colors.accentPrimary : colors.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(t) => { setEmail(t); setErrorMsg(''); }}
                 placeholder="you@email.com"
                 placeholderTextColor={colors.textMuted}
                 autoCapitalize="none"
                 keyboardType="email-address"
+                editable={!loading}
               />
             </View>
           </View>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Password</Text>
-            <View style={styles.inputWrap}>
-              <Ionicons name="lock-closed-outline" size={18} color={colors.textMuted} style={styles.inputIcon} />
+            <View style={[styles.inputWrap, !!errorMsg && styles.inputWrapError]}>
+              <Ionicons name="lock-closed-outline" size={18} color={errorMsg ? colors.accentPrimary : colors.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(t) => { setPassword(t); setErrorMsg(''); }}
                 placeholder="Your password"
                 placeholderTextColor={colors.textMuted}
                 secureTextEntry={!showPass}
+                editable={!loading}
               />
               <Pressable onPress={() => setShowPass(s => !s)} style={styles.eyeBtn}>
                 <Ionicons name={showPass ? 'eye-off-outline' : 'eye-outline'} size={18} color={colors.textMuted} />
@@ -105,13 +123,27 @@ export default function LoginScreen() {
             </View>
           </View>
 
+          {!!errorMsg && (
+            <View style={styles.errorRow}>
+              <Ionicons name="alert-circle" size={16} color={colors.accentPrimary} />
+              <Text style={styles.errorText}>{errorMsg}</Text>
+            </View>
+          )}
+
           <Pressable
             onPress={handleLogin}
             disabled={loading}
             style={({ pressed }) => [styles.loginBtn, { opacity: loading ? 0.7 : pressed ? 0.9 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
           >
             <LinearGradient colors={['#FF8F9B', '#FF5E73']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.loginBtnGrad}>
-              <Text style={styles.loginBtnText}>{loading ? 'Signing in...' : 'Sign In'}</Text>
+              {loading ? (
+                <View style={styles.loadingRow}>
+                  <ActivityIndicator size="small" color="#fff" />
+                  <Text style={styles.loginBtnText}>Signing in...</Text>
+                </View>
+              ) : (
+                <Text style={styles.loginBtnText}>Sign In</Text>
+              )}
             </LinearGradient>
           </Pressable>
 
@@ -131,7 +163,7 @@ export default function LoginScreen() {
           <Pressable
             onPress={handleDemoLogin}
             disabled={loading}
-            style={({ pressed }) => [styles.demoBtn, { opacity: pressed ? 0.8 : 1 }]}
+            style={({ pressed }) => [styles.demoBtn, { opacity: loading ? 0.5 : pressed ? 0.8 : 1 }]}
           >
             <Ionicons name="flash-outline" size={16} color={colors.accentPrimary} />
             <Text style={styles.demoBtnText}>Quick Demo Login</Text>
@@ -167,12 +199,22 @@ const styles = StyleSheet.create({
     borderRadius: radius.small, borderWidth: 1.5, borderColor: colors.borderSubtle,
     paddingHorizontal: spacing.md,
   },
+  inputWrapError: {
+    borderColor: colors.accentPrimary,
+  },
   inputIcon: { marginRight: spacing.sm },
   input: { flex: 1, fontSize: 15, color: colors.textPrimary, paddingVertical: 14, fontFamily: 'Inter_400Regular' },
   eyeBtn: { padding: 4 },
+  errorRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: colors.accentPrimary + '10',
+    borderRadius: radius.small, paddingVertical: 10, paddingHorizontal: spacing.md,
+  },
+  errorText: { fontSize: 13, fontFamily: 'Inter_500Medium', color: colors.accentPrimary, flex: 1 },
   loginBtn: { marginTop: 4 },
   loginBtnGrad: { borderRadius: radius.button, paddingVertical: 16, alignItems: 'center', justifyContent: 'center' },
   loginBtnText: { fontSize: 16, fontFamily: 'Inter_700Bold', color: '#fff' },
+  loadingRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   divider: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   dividerLine: { flex: 1, height: 1, backgroundColor: colors.borderSubtle },
   dividerText: { ...typography.meta, color: colors.textMuted, fontFamily: 'Inter_400Regular' },

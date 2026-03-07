@@ -8,8 +8,10 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import * as ImagePicker from 'expo-image-picker';
 import { colors, typography, spacing, radius, shadow } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { Avatar } from '@/components/ui/Avatar';
 
 const ROLE_OPTIONS: { value: 'worker' | 'host'; label: string; icon: string; desc: string }[] = [
   { value: 'worker', label: 'Worker', icon: 'hammer-outline', desc: 'Find gigs & get hired' },
@@ -18,7 +20,7 @@ const ROLE_OPTIONS: { value: 'worker' | 'host'; label: string; icon: string; des
 
 export default function SignUpScreen() {
   const insets = useSafeAreaInsets();
-  const { signUp } = useAuth();
+  const { signUp, updateOnboardingProfile } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -29,11 +31,30 @@ export default function SignUpScreen() {
   const [organization, setOrganization] = useState('');
   const [major, setMajor] = useState('');
   const [loading, setLoading] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
 
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
   const botPad = Platform.OS === 'web' ? 34 : insets.bottom;
 
   const isValid = fullName.trim() && email.trim() && password.trim() && school.trim();
+
+  const handlePickPhoto = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please allow access to your photo library to upload a profile photo.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setProfilePhoto(result.assets[0].uri);
+    }
+  };
 
   const handleSignUp = async () => {
     if (!isValid) {
@@ -44,6 +65,9 @@ export default function SignUpScreen() {
     setLoading(true);
     try {
       await signUp(fullName.trim(), email.trim(), password, role);
+      if (profilePhoto) {
+        await updateOnboardingProfile({ profilePhotoUri: profilePhoto });
+      }
       if (role === 'worker') {
         router.replace('/onboarding/worker-setup');
       } else {
@@ -76,6 +100,23 @@ export default function SignUpScreen() {
         </View>
 
         <View style={styles.form}>
+          <Pressable onPress={handlePickPhoto} style={styles.photoSection}>
+            <View style={styles.photoWrap}>
+              <Avatar
+                size={80}
+                name={fullName || 'User'}
+                imageUri={profilePhoto || undefined}
+                backgroundColor={colors.accentLavender + '40'}
+              />
+              <View style={styles.photoCameraIcon}>
+                <Ionicons name="camera" size={14} color="#fff" />
+              </View>
+            </View>
+            <Text style={styles.photoLabel}>
+              {profilePhoto ? 'Change photo' : 'Upload profile photo'}
+            </Text>
+          </Pressable>
+
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Full Name *</Text>
             <View style={styles.inputWrap}>
@@ -245,6 +286,16 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontFamily: 'Inter_700Bold', color: colors.textPrimary, marginTop: 4 },
   subtitle: { ...typography.body, color: colors.textMuted, fontFamily: 'Inter_400Regular', textAlign: 'center' },
   form: { gap: spacing.md },
+  photoSection: { alignItems: 'center', gap: 8 },
+  photoWrap: { position: 'relative' },
+  photoCameraIcon: {
+    position: 'absolute', bottom: 0, right: 0,
+    width: 26, height: 26, borderRadius: 13,
+    backgroundColor: colors.accentPrimary,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: '#fff',
+  },
+  photoLabel: { fontSize: 13, fontFamily: 'Inter_500Medium', color: colors.accentPrimary },
   inputGroup: { gap: 6 },
   label: { ...typography.bodyMedium, color: colors.textSecondary, fontFamily: 'Inter_600SemiBold' },
   inputWrap: {
@@ -267,7 +318,7 @@ const styles = StyleSheet.create({
   },
   roleLabel: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: colors.textPrimary },
   roleLabelSelected: { color: colors.accentPrimary },
-  roleDesc: { ...typography.meta, color: colors.textMuted, fontFamily: 'Inter_400Regular', textAlign: 'center' },
+  roleDesc: { ...typography.meta, color: colors.textMuted, fontFamily: 'Inter_400Regular', textAlign: 'center' as const },
   submitBtn: { marginTop: 8 },
   submitBtnGrad: { borderRadius: radius.button, paddingVertical: 16, alignItems: 'center', justifyContent: 'center' },
   submitBtnText: { fontSize: 16, fontFamily: 'Inter_700Bold', color: '#fff' },

@@ -54,7 +54,10 @@ app/
   - Not authenticated → /onboarding (welcome)
   - Authenticated, onboarding incomplete → /onboarding
   - Authenticated, onboarding complete → /(tabs)
+- `signIn()` returns `SignInResult` with typed error reasons (`no_account`, `incorrect_password`, `empty_fields`)
+- Login screen shows inline error messages (no Alert dialogs for validation)
 - Demo login: alex@nyu.edu / any password
+- Profile photo upload via expo-image-picker (stored as `profilePhotoUri` in OnboardingProfile)
 
 ### Apply Flow
 - `applyToRole(roleId, eventId)` returns `ApplyResult` with reasons:
@@ -79,9 +82,15 @@ app/
 - `data/mockApplications.ts` — Application with profile data fields
 - `data/mockOrganizations.ts` — 20 Rutgers organizations with real links
 
+### Components
+- `Avatar` — supports `imageSource`, `imageUri`, `imageUrl` with fallback to initials on error
+- `OrgAvatar` — organization-specific avatar with category-colored initials fallback
+- Organization data model supports optional `imageUrl` field
+
 ### Important Patterns
 - Safe area: `Platform.OS === 'web' ? 67 : insets.top` for top padding
 - Web bottom inset: 34px (or 84px for tab bar)
 - Portraits: 10 in assets/mock/users/, workers w9-w20 use avatarColor fallback
 - Event images: Only event-hero.png and event-mixer.png exist; others use gradient fallback
 - No emojis in UI — use Ionicons, Feather, MaterialCommunityIcons
+- Profile "My Applications" resolves event names via AppContext events lookup (not raw roleIds)

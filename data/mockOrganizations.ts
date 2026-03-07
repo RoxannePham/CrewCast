@@ -1,14 +1,25 @@
+export type OrganizationCategory =
+  | 'Tech'
+  | 'Cultural'
+  | 'Identity'
+  | 'Arts'
+  | 'Sports'
+  | 'Academic'
+  | 'Pre-Professional'
+  | 'Student Government';
+
 export interface Organization {
   id: string;
   name: string;
-  category: 'Tech' | 'Cultural' | 'Identity' | 'Arts' | 'Sports' | 'Academic' | 'Pre-Professional' | 'Student Government';
+  category: OrganizationCategory;
   campus: string;
   description: string;
-  primaryLink: string;
+  primaryLink?: string;
   instagram?: string;
   linktree?: string;
   website?: string;
   email?: string;
+  imageUrl?: string;
   tags: string[];
 }
 
