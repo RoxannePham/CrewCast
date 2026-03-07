@@ -13,9 +13,12 @@ import { Avatar } from '@/components/ui/Avatar';
 import { StarRating } from '@/components/ui/StarRating';
 import { Chip } from '@/components/ui/Chip';
 import { Badge } from '@/components/ui/Badge';
+import { PaymentSheet } from '@/components/PaymentSheet';
+import { PaymentReceipt } from '@/components/PaymentReceipt';
 import { mockWorkers } from '@/data/mockUsers';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
+import { usePayments } from '@/context/PaymentContext';
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   pending: { bg: colors.accentPeach + '30', text: '#8B5A00' },
@@ -30,10 +33,16 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
 export default function CandidateDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const { bookWorker, bookedWorkers, getApplicationsByWorker } = useApp();
+  const { bookWorker, bookedWorkers, getApplicationsByWorker, getEventById } = useApp();
   const { user } = useAuth();
+  const {
+    createPayment, processPayment, getPaymentForApplication,
+    paymentMethods, selectedPaymentMethod, setSelectedPaymentMethod,
+  } = usePayments();
   const [activeTab, setActiveTab] = useState<'profile' | 'reviews' | 'stats'>('profile');
   const [booked, setBooked] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
 
   const isHost = user?.type === 'host';
 
@@ -54,9 +63,41 @@ export default function CandidateDetailScreen() {
   const workerApps = getApplicationsByWorker(worker.id);
   const reliabilityPct = Math.round(worker.reliabilityScore * 100);
 
+  const bookedApp = workerApps.find(a => a.status === 'booked' || a.status === 'accepted');
+  const existingPayment = bookedApp ? getPaymentForApplication(bookedApp.id) : undefined;
+  const paymentCompleted = existingPayment?.paymentStatus === 'completed';
+
+  const paymentEvent = bookedApp ? getEventById(bookedApp.eventId) : undefined;
+  const paymentRole = paymentEvent?.roles.find(r => r.id === bookedApp?.roleId);
+  const payAmount = paymentRole?.pay || 125;
+
+  const handlePayWorker = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowPayment(true);
+  };
+
+  const handleConfirmPayment = async () => {
+    if (!bookedApp || !user) return;
+    const event = getEventById(bookedApp.eventId);
+    const role = event?.roles.find(r => r.id === bookedApp.roleId);
+
+    const payment = createPayment({
+      eventId: bookedApp.eventId,
+      applicationId: bookedApp.id,
+      hostId: user.id,
+      workerId: worker.id,
+      workerName: worker.name,
+      eventTitle: event?.title || 'Event',
+      roleType: role?.roleType || 'Crew',
+      amountTotal: payAmount,
+      paymentMethod: selectedPaymentMethod,
+    });
+
+    await processPayment(payment.id);
+  };
+
   return (
     <View style={styles.container}>
-      {/* Hero */}
       <View style={[styles.hero, { paddingTop: topPad + 8 }]}>
         <LinearGradient colors={[worker.avatarColor + 'AA', worker.avatarColor + '33', colors.backgroundPrimary]} style={StyleSheet.absoluteFill} />
         <View style={styles.heroHeader}>
@@ -76,7 +117,7 @@ export default function CandidateDetailScreen() {
             showBorder
           />
           <Text style={styles.workerName}>{worker.name}</Text>
-          <Text style={styles.workerSchool}>{worker.school} · {worker.city}</Text>
+          <Text style={styles.workerSchool}>{worker.school} &middot; {worker.city}</Text>
           <View style={styles.ratingRow}>
             <StarRating rating={worker.rating} size={14} />
             <Text style={styles.ratingText}>{worker.rating} ({worker.gigs} gigs)</Text>
@@ -89,7 +130,6 @@ export default function CandidateDetailScreen() {
         </View>
       </View>
 
-      {/* Tabs */}
       <View style={styles.tabs}>
         {(['profile', 'reviews', 'stats'] as const).map(tab => (
           <Pressable key={tab} onPress={() => setActiveTab(tab)} style={[styles.tab, activeTab === tab && styles.tabActive]}>
@@ -226,6 +266,10 @@ export default function CandidateDetailScreen() {
                 )}
               </View>
             )}
+
+            {isBooked && existingPayment && showReceipt && (
+              <PaymentReceipt payment={existingPayment} />
+            )}
           </View>
         )}
 
@@ -248,7 +292,7 @@ export default function CandidateDetailScreen() {
                     <Avatar size={36} name={review.authorName} backgroundColor={review.authorAvatarColor} />
                     <View style={styles.reviewInfo}>
                       <Text style={styles.reviewAuthor}>{review.authorName}</Text>
-                      <Text style={styles.reviewEvent}>{review.eventTitle} · {review.date}</Text>
+                      <Text style={styles.reviewEvent}>{review.eventTitle} &middot; {review.date}</Text>
                     </View>
                     <StarRating rating={review.rating} size={12} />
                   </View>
@@ -290,38 +334,60 @@ export default function CandidateDetailScreen() {
         )}
       </ScrollView>
 
-      {/* Book CTA */}
       <View style={[styles.bookingBar, { paddingBottom: botPad + 12 }]}>
         <View style={styles.bookingInfo}>
           <Text style={styles.bookingName}>{worker.name}</Text>
           <Text style={styles.bookingRoles}>{worker.roles.join(', ')}</Text>
         </View>
-        <Pressable
-          onPress={() => {
-            if (!isBooked) {
+        {!isBooked ? (
+          <Pressable
+            onPress={() => {
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               setBooked(true);
               bookWorker(worker.id);
-            }
-          }}
-          style={({ pressed }) => [
-            styles.bookBtn,
-            isBooked && styles.bookBtnBooked,
-            { transform: [{ scale: pressed ? 0.96 : 1 }] }
-          ]}
-        >
-          {!isBooked ? (
+            }}
+            style={({ pressed }) => [styles.bookBtn, { transform: [{ scale: pressed ? 0.96 : 1 }] }]}
+          >
             <LinearGradient colors={['#FF8F9B', '#FF5E73']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.bookBtnGrad}>
               <Text style={styles.bookBtnText}>Book {worker.name.split(' ')[0]}</Text>
             </LinearGradient>
-          ) : (
+          </Pressable>
+        ) : paymentCompleted ? (
+          <Pressable
+            onPress={() => setShowReceipt(s => !s)}
+            style={({ pressed }) => [styles.bookBtn, { transform: [{ scale: pressed ? 0.96 : 1 }] }]}
+          >
             <View style={[styles.bookBtnGrad, { backgroundColor: colors.accentMint + '60' }]}>
               <Ionicons name="checkmark-circle" size={18} color="#1A6635" />
-              <Text style={[styles.bookBtnText, { color: '#1A6635' }]}>Booked!</Text>
+              <Text style={[styles.bookBtnText, { color: '#1A6635' }]}>Paid</Text>
             </View>
-          )}
-        </Pressable>
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={handlePayWorker}
+            style={({ pressed }) => [styles.bookBtn, { transform: [{ scale: pressed ? 0.96 : 1 }] }]}
+          >
+            <LinearGradient colors={['#CDB9FF', '#A78BFA']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.bookBtnGrad}>
+              <Ionicons name="wallet-outline" size={16} color="#fff" />
+              <Text style={styles.bookBtnText}>Pay Worker</Text>
+            </LinearGradient>
+          </Pressable>
+        )}
       </View>
+
+      <PaymentSheet
+        visible={showPayment}
+        onClose={() => setShowPayment(false)}
+        onConfirm={handleConfirmPayment}
+        eventTitle={paymentEvent?.title || 'Event'}
+        workerName={worker.name}
+        orgName={paymentEvent?.orgName || 'Organization'}
+        roleType={paymentRole?.roleType || worker.roles[0] || 'Crew'}
+        amount={payAmount}
+        paymentMethods={paymentMethods}
+        selectedMethod={selectedPaymentMethod}
+        onMethodChange={setSelectedPaymentMethod}
+      />
     </View>
   );
 }
@@ -383,7 +449,6 @@ const styles = StyleSheet.create({
   bookingName: { ...typography.bodyMedium, color: colors.textPrimary, fontFamily: 'Inter_600SemiBold' },
   bookingRoles: { ...typography.meta, color: colors.textMuted, fontFamily: 'Inter_400Regular' },
   bookBtn: { overflow: 'hidden', borderRadius: radius.button },
-  bookBtnBooked: {},
   bookBtnGrad: { paddingVertical: 12, paddingHorizontal: spacing.lg, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: radius.button },
   bookBtnText: { fontSize: 15, fontFamily: 'Inter_700Bold', color: '#fff' },
   appRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.borderSubtle },

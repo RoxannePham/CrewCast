@@ -76,11 +76,24 @@ app/
 - accentBlue: `#B9D9FF`
 - Card radius: 22px, Inter font (400/500/600/700)
 
+### Payment System
+- **2% platform fee**: `calculatePayment(total)` in `lib/paymentHelpers.ts`
+- **PaymentContext** (`context/PaymentContext.tsx`): createPayment, processPayment (simulates pending→processing→completed), getters by event/worker/host/application
+- **PaymentSheet** (`components/PaymentSheet.tsx`): Modal with fee breakdown, method selector, processing→success animation
+- **PaymentReceipt** (`components/PaymentReceipt.tsx`): Compact + full receipt, `PaymentStatusBadge` component
+- **Mock data** (`data/mockPayments.ts`): Payment/PaymentMethod types, 3 mock methods, pre-seeded payments
+- **Integration points**:
+  - `candidate/[id].tsx`: Book→"Pay Worker"→"Paid" CTA progression with PaymentSheet
+  - `profile.tsx`: My Applications show payment badges; Payments section shows worker earnings
+  - `event/[id].tsx`: Crew tab shows payment status per crew member + payment history section
+- Provider order: PaymentProvider sits after AppProvider in `_layout.tsx`
+
 ### Key Data Files
 - `data/mockUsers.ts` — WorkerProfile/HostProfile with portraits
 - `data/mockEvents.ts` — MockEvent with EventRole entries
 - `data/mockApplications.ts` — Application with profile data fields
 - `data/mockOrganizations.ts` — 20 Rutgers organizations with real links
+- `data/mockPayments.ts` — Payment types, mock methods, pre-seeded payments
 
 ### Components
 - `Avatar` — supports `imageSource`, `imageUri`, `imageUrl` with fallback to initials on error

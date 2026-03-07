@@ -1,0 +1,290 @@
+Keep all current CrewCast updates exactly as they are, including:
+- My Applications showing real event names instead of raw IDs
+- login validation rejecting nonexistent users / wrong passwords
+- profile photo upload for users
+- onboarding/apply logic
+- current UX polish and state/context improvements
+- Organizations using category-based icons instead of pulled public images
+
+Now add a MOCK payment system that feels real and polished in the app, but does NOT process actual payments yet.
+
+IMPORTANT:
+- This should look like a real in-app payment workflow
+- It should behave like a realistic product demo
+- It should use mock/local state only
+- Do NOT integrate Stripe, Venmo, Zelle, Apple Pay, or any real payment API yet
+- The UI should make it feel like CrewCast has a built-in payment system
+- The logic should be structured so a real payment provider can be plugged in later
+
+==================================================
+1. GOAL
+==================================================
+
+CrewCast takes a 2% commission on each successful job between the host and the worker.
+
+For now, I want a mock payment flow that:
+- looks real
+- feels secure
+- shows payment breakdowns
+- records payment state in the app
+- helps demo how the platform would work
+
+This is for product realism, not actual money movement.
+
+==================================================
+2. PAYMENT FLOW
+==================================================
+
+Create a realistic mock payment flow like this:
+
+1. Host accepts / hires a worker for an event or job
+2. Host sees a “Create Payment” or “Pay Worker” CTA
+3. Tapping opens a payment popup / bottom sheet / modal
+4. Popup shows:
+   - event/job title
+   - worker name
+   - host/org name
+   - total amount
+   - CrewCast fee (2%)
+   - worker payout
+   - payment method
+   - trust/security note
+5. Host confirms payment
+6. App simulates processing
+7. Payment state updates to completed or scheduled
+8. Worker sees a payment status on their side
+
+This should all be mock/local state, but it should feel believable.
+
+==================================================
+3. PAYMENT POPUP / SHEET UI
+==================================================
+
+Create a polished payment modal or bottom sheet.
+
+It should show:
+- event title
+- worker name
+- organization / host
+- editable or preset payment amount
+- CrewCast fee (2%)
+- worker receives amount
+- mock payment method
+- small trust/security note
+- confirm button
+- cancel button
+
+Example breakdown:
+- Job Total: $125.00
+- CrewCast Fee (2%): $2.50
+- Worker Receives: $122.50
+
+Use strong UI hierarchy for money:
+- large total
+- smaller fee line
+- emphasized payout line
+
+Make it feel like a modern marketplace payment sheet.
+
+==================================================
+4. MOCK PAYMENT METHODS
+==================================================
+
+Add believable mock payment methods, but do NOT integrate any real provider.
+
+Examples:
+- Visa ending in 4242
+- Mastercard ending in 1881
+- Bank Account ending in 2045
+
+Requirements:
+- payment method selector UI
+- selected mock payment method stored in state
+- ability to switch between mock methods
+- option to add another payment method as a fake/demo action if helpful
+
+This should feel like a real system, even though it is local-only.
+
+==================================================
+5. MOCK PROCESSING STATES
+==================================================
+
+Add realistic payment states:
+
+paymentStatus:
+- draft
+- pending
+- processing
+- completed
+- failed
+
+payoutStatus:
+- not_started
+- scheduled
+- paid
+
+Simulate the payment flow:
+- after tapping confirm, show processing state briefly
+- then transition to completed
+- optionally mark payout as scheduled or paid
+
+Add clean status badges and labels.
+
+==================================================
+6. MOCK PAYMENT DATA MODEL
+==================================================
+
+Create or update a local/mock payment model with fields like:
+
+- id
+- eventId
+- applicationId
+- hostId
+- workerId
+- amountTotal
+- platformFee
+- workerPayout
+- currency
+- paymentStatus
+- payoutStatus
+- paymentMethodType
+- paymentMethodLabel
+- createdAt
+- completedAt
+- notes
+
+Keep this future-friendly so a real payment provider can be integrated later.
+
+==================================================
+7. PAYMENT CALCULATION
+==================================================
+
+Implement a reusable helper that calculates:
+- total amount
+- 2% CrewCast fee
+- worker payout
+
+Rules:
+- fee = total * 0.02
+- payout = total - fee
+- format all money properly as currency
+- use the same calculation everywhere
+
+==================================================
+8. WHERE PAYMENT SHOULD APPEAR
+==================================================
+
+Add the payment flow in the cleanest host-facing place, such as:
+- accepted applicant detail screen
+- hired worker card
+- host event detail page
+- management area for confirmed crew
+
+Also add worker-facing visibility, such as:
+- payment status on their application/job screen
+- “Payment Scheduled” / “Payment Completed” indicator
+
+==================================================
+9. MAKE IT FEEL TRUSTWORTHY
+==================================================
+
+Add subtle product language that makes the mock payment system feel legitimate.
+
+Examples:
+- “Processed securely through CrewCast”
+- “Payment record saved”
+- “Payout scheduled”
+- “Keep payment on CrewCast for transparent job records”
+- “Booking and payment details stored in-app”
+
+IMPORTANT:
+Do not falsely claim legal guarantees or real bank-grade processing.
+It should feel real, but not misleading in a dangerous way.
+
+Avoid overclaiming things like:
+- “fully insured”
+- “FDIC protected”
+- “buyer guarantee”
+unless actually implemented
+
+==================================================
+10. FAKE BUT BELIEVABLE RECEIPTS / HISTORY
+==================================================
+
+Add a mock receipt/payment summary UI after completion.
+
+It can show:
+- payment completed
+- event/job title
+- worker name
+- total paid
+- CrewCast fee
+- payout amount
+- payment method used
+- timestamp
+
+If it fits cleanly, add a payment history section or payment card in event details.
+
+==================================================
+11. UX POLISH
+==================================================
+
+Make the mock payment system feel polished:
+- loading state during confirmation
+- disabled confirm button while processing
+- success state after payment
+- clear typography for fees/payouts
+- polished modal spacing
+- status badges
+- empty state if no payment exists yet
+
+Suggested labels:
+- “Create Payment”
+- “Review Payment”
+- “Processing Payment...”
+- “Payment Completed”
+- “Payout Scheduled”
+- “View Receipt”
+
+==================================================
+12. FUTURE-READY ARCHITECTURE
+==================================================
+
+Even though this is mock-only right now, structure the code so it can later connect to a real marketplace payment system.
+
+That means:
+- keep payment logic separated from UI
+- use clean payment models/types
+- use helpers/services for calculations and state updates
+- do not hardcode the UI too tightly to fake values
+- make it easy to swap in a real provider later
+
+Design it like a future Stripe Connect-style marketplace flow, but do NOT integrate Stripe yet.
+
+==================================================
+13. ORGANIZATIONS MUST STAY ICON-BASED
+==================================================
+
+Do not reintroduce pulled public images for Organizations.
+Keep the category-based icon system intact.
+
+==================================================
+14. DO NOT BREAK EXISTING FEATURES
+==================================================
+
+Preserve all working current features and recent fixes.
+This task is to ADD a mock payment system without breaking the rest of the app.
+
+==================================================
+15. DELIVERABLE
+==================================================
+
+After implementing, provide a concise summary of:
+- files created
+- files modified
+- where the payment entry points are
+- how the mock payment flow works
+- how the 2% fee is calculated
+- what statuses were added
+- what is mock-only right now
+- what would later connect to a real provider

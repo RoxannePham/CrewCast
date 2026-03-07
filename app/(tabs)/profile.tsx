@@ -16,7 +16,10 @@ import { Chip } from '@/components/ui/Chip';
 import { useAuth } from '@/context/AuthContext';
 import { useNotifications } from '@/context/NotificationsContext';
 import { useApp } from '@/context/AppContext';
+import { usePayments } from '@/context/PaymentContext';
+import { PaymentReceipt } from '@/components/PaymentReceipt';
 import { WorkerProfile } from '@/data/mockUsers';
+import { formatCurrency } from '@/lib/paymentHelpers';
 
 function StatBox({ label, value, color }: { label: string; value: string | number; color: string }) {
   return (
@@ -52,6 +55,7 @@ export default function ProfileScreen() {
   const { user, signOut, onboardingProfile, updateOnboardingProfile } = useAuth();
   const { unreadCount } = useNotifications();
   const { applications, events } = useApp();
+  const { getPaymentsByWorker, getPaymentForApplication } = usePayments();
   const [notifOn, setNotifOn] = useState(true);
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
   const botPad = Platform.OS === 'web' ? 34 : insets.bottom;
@@ -204,6 +208,19 @@ export default function ProfileScreen() {
                         <Text style={styles.appResumeText}>Resume</Text>
                       </View>
                     )}
+                    {(() => {
+                      const appPayment = getPaymentForApplication(app.id);
+                      if (!appPayment) return null;
+                      const isPaid = appPayment.paymentStatus === 'completed';
+                      return (
+                        <View style={[styles.appResumeBadge, { backgroundColor: isPaid ? '#1A663520' : colors.accentBlue + '20' }]}>
+                          <Ionicons name={isPaid ? 'checkmark-circle' : 'time-outline'} size={10} color={isPaid ? '#1A6635' : '#1A4D80'} />
+                          <Text style={[styles.appResumeText, { color: isPaid ? '#1A6635' : '#1A4D80' }]}>
+                            {isPaid ? 'Paid' : 'Payment Pending'}
+                          </Text>
+                        </View>
+                      );
+                    })()}
                   </View>
                 </View>
                 <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
@@ -212,6 +229,31 @@ export default function ProfileScreen() {
           })}
         </View>
       )}
+
+      {isWorker && (() => {
+        const workerPayments = getPaymentsByWorker(user.id);
+        if (workerPayments.length === 0) return null;
+        const totalEarned = workerPayments
+          .filter(p => p.paymentStatus === 'completed')
+          .reduce((sum, p) => sum + p.workerPayout, 0);
+        return (
+          <View style={[styles.card, shadow.card]}>
+            <View style={styles.paymentsHeader}>
+              <Text style={styles.cardTitle}>Payments</Text>
+              {totalEarned > 0 && (
+                <Text style={styles.totalEarned}>{formatCurrency(totalEarned)} earned</Text>
+              )}
+            </View>
+            {workerPayments.slice(0, 5).map(payment => (
+              <PaymentReceipt key={payment.id} payment={payment} compact />
+            ))}
+            <View style={styles.paymentsTrust}>
+              <Ionicons name="shield-checkmark-outline" size={14} color={colors.textMuted} />
+              <Text style={styles.paymentsTrustText}>Booking and payment details stored in-app</Text>
+            </View>
+          </View>
+        );
+      })()}
 
       <View style={[styles.card, shadow.card]}>
         <Text style={styles.cardTitle}>Settings</Text>
@@ -314,4 +356,8 @@ const styles = StyleSheet.create({
   signInBtnText: { fontSize: 16, fontFamily: 'Inter_700Bold', color: '#fff' },
   signUpLink: { marginTop: spacing.sm },
   signUpLinkText: { ...typography.body, color: colors.accentPrimary, fontFamily: 'Inter_600SemiBold' },
+  paymentsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  totalEarned: { fontSize: 15, fontFamily: 'Inter_700Bold', color: '#1A6635' },
+  paymentsTrust: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 4 },
+  paymentsTrustText: { fontSize: 11, fontFamily: 'Inter_400Regular', color: colors.textMuted },
 });

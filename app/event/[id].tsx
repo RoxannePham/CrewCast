@@ -14,6 +14,9 @@ import { StarRating } from '@/components/ui/StarRating';
 import { Chip } from '@/components/ui/Chip';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
+import { usePayments } from '@/context/PaymentContext';
+import { PaymentReceipt } from '@/components/PaymentReceipt';
+import { PaymentStatusBadge } from '@/components/PaymentReceipt';
 import { mockWorkers } from '@/data/mockUsers';
 import { EventRole, MockEvent } from '@/data/mockEvents';
 
@@ -104,6 +107,7 @@ export default function EventDetailScreen() {
   const insets = useSafeAreaInsets();
   const { getEventById, appliedRoles, applyToRole, getEventApplications } = useApp();
   const { user } = useAuth();
+  const { getPaymentsByEvent } = usePayments();
   const [activeTab, setActiveTab] = useState<'overview' | 'roles' | 'crew'>('overview');
 
   const event = getEventById(id as string);
@@ -260,14 +264,45 @@ export default function EventDetailScreen() {
                 <Text style={styles.emptyStateText}>No crew confirmed yet</Text>
               </View>
             ) : (
-              event.confirmedCrewIds.map(wId => (
-                <ApplicantRow key={wId} workerId={wId} onPress={() => router.push(`/candidate/${wId}`)} />
-              ))
+              event.confirmedCrewIds.map(wId => {
+                const crewPayments = getPaymentsByEvent(event.id).filter(p => p.workerId === wId);
+                const latestPayment = crewPayments.length > 0 ? crewPayments[crewPayments.length - 1] : null;
+                return (
+                  <View key={wId}>
+                    <ApplicantRow workerId={wId} onPress={() => router.push(`/candidate/${wId}`)} />
+                    {latestPayment && (
+                      <View style={styles.crewPaymentBadge}>
+                        <PaymentStatusBadge status={latestPayment.paymentStatus} type="payment" />
+                        {latestPayment.paymentStatus === 'completed' && (
+                          <PaymentStatusBadge status={latestPayment.payoutStatus} type="payout" />
+                        )}
+                      </View>
+                    )}
+                  </View>
+                );
+              })
             )}
             <Text style={[styles.sectionHeader, { marginTop: spacing.md }]}>Applicants ({applications.length})</Text>
             {applications.slice(0, 6).map(app => (
               <ApplicantRow key={app.id} workerId={app.workerId} onPress={() => router.push(`/candidate/${app.workerId}`)} />
             ))}
+
+            {(() => {
+              const eventPayments = getPaymentsByEvent(event.id);
+              if (eventPayments.length === 0) return null;
+              return (
+                <>
+                  <Text style={[styles.sectionHeader, { marginTop: spacing.md }]}>Payment History</Text>
+                  {eventPayments.map(payment => (
+                    <PaymentReceipt key={payment.id} payment={payment} compact />
+                  ))}
+                  <View style={styles.paymentTrust}>
+                    <Ionicons name="shield-checkmark-outline" size={14} color={colors.textMuted} />
+                    <Text style={styles.paymentTrustText}>Keep payment on CrewCast for transparent job records</Text>
+                  </View>
+                </>
+              );
+            })()}
           </View>
         )}
       </ScrollView>
@@ -350,4 +385,7 @@ const styles = StyleSheet.create({
   applicantRole: { ...typography.meta, color: colors.textMuted, fontFamily: 'Inter_400Regular' },
   emptyState: { alignItems: 'center', paddingVertical: spacing.xl, gap: spacing.sm },
   emptyStateText: { ...typography.body, color: colors.textMuted, fontFamily: 'Inter_400Regular' },
+  crewPaymentBadge: { flexDirection: 'row', gap: 6, marginLeft: spacing.xl, marginTop: -4, marginBottom: 4 },
+  paymentTrust: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 8 },
+  paymentTrustText: { fontSize: 11, fontFamily: 'Inter_400Regular', color: colors.textMuted },
 });

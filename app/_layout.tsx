@@ -19,6 +19,7 @@ import { AppProvider } from "@/context/AppContext";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { NotificationsProvider } from "@/context/NotificationsContext";
 import { ChatProvider } from "@/context/ChatContext";
+import { PaymentProvider } from "@/context/PaymentContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -135,15 +136,17 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <AppProvider>
-            <NotificationsProvider>
-              <ChatProvider>
-                <GestureHandlerRootView style={{ flex: 1 }}>
-                  <KeyboardProvider>
-                    <RootLayoutNav />
-                  </KeyboardProvider>
-                </GestureHandlerRootView>
-              </ChatProvider>
-            </NotificationsProvider>
+            <PaymentProvider>
+              <NotificationsProvider>
+                <ChatProvider>
+                  <GestureHandlerRootView style={{ flex: 1 }}>
+                    <KeyboardProvider>
+                      <RootLayoutNav />
+                    </KeyboardProvider>
+                  </GestureHandlerRootView>
+                </ChatProvider>
+              </NotificationsProvider>
+            </PaymentProvider>
           </AppProvider>
         </AuthProvider>
       </QueryClientProvider>
