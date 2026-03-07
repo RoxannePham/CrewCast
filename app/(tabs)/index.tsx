@@ -18,9 +18,43 @@ import { useChat } from '@/context/ChatContext';
 import { MockEvent } from '@/data/mockEvents';
 import { OrgAvatar } from '@/components/ui/OrgAvatar';
 import { mockOrganizations, Organization } from '@/data/mockOrganizations';
+import { mockWorkers } from '@/data/mockUsers';
+
+const CREW_AVATAR_SIZE = 28;
+const CREW_OVERLAP = -8;
+const MAX_CREW_SHOWN = 3;
+
+function CrewAvatarStack({ crewIds }: { crewIds: string[] }) {
+  if (crewIds.length === 0) return null;
+  const shown = crewIds.slice(0, MAX_CREW_SHOWN);
+  const remaining = crewIds.length - shown.length;
+  return (
+    <View style={styles.crewStack}>
+      {shown.map((wId, i) => {
+        const worker = mockWorkers.find(w => w.id === wId);
+        if (!worker) return null;
+        return (
+          <View key={wId} style={[styles.crewAvatarWrapper, { marginLeft: i > 0 ? CREW_OVERLAP : 0, zIndex: MAX_CREW_SHOWN - i }]}>
+            {worker.portraitPath ? (
+              <Image source={worker.portraitPath} style={styles.crewAvatarImg} />
+            ) : (
+              <View style={[styles.crewAvatarFallback, { backgroundColor: worker.avatarColor }]}>
+                <Text style={styles.crewAvatarInitial}>{worker.name.charAt(0)}</Text>
+              </View>
+            )}
+          </View>
+        );
+      })}
+      {remaining > 0 && (
+        <View style={[styles.crewAvatarWrapper, styles.crewAvatarMore, { marginLeft: CREW_OVERLAP, zIndex: 0 }]}>
+          <Text style={styles.crewMoreText}>+{remaining}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
 
 function EventHeroCard({ event, onPress }: { event: MockEvent; onPress: () => void }) {
-  const roleCount = event.roles.length;
   const openRoles = event.roles.filter(r => r.filledSlots < r.slots).length;
   return (
     <Pressable
@@ -32,11 +66,16 @@ function EventHeroCard({ event, onPress }: { event: MockEvent; onPress: () => vo
       ) : (
         <LinearGradient colors={[event.themeColor + 'DD', event.themeColor + '55']} style={styles.heroCardImage} />
       )}
-      <LinearGradient colors={['transparent', 'rgba(0,0,0,0.65)']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['transparent', 'rgba(0,0,0,0.6)']} style={StyleSheet.absoluteFill} />
       {event.isTonight && (
         <View style={styles.tonightChip}>
           <Ionicons name="flash" size={11} color="#fff" />
           <Text style={styles.tonightChipText}>TONIGHT</Text>
+        </View>
+      )}
+      {event.confirmedCrewIds.length > 0 && (
+        <View style={styles.crewChipContainer}>
+          <CrewAvatarStack crewIds={event.confirmedCrewIds} />
         </View>
       )}
       <View style={styles.heroCardContent}>
@@ -245,7 +284,7 @@ export default function HomeScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Top Crew in Your Area</Text>
-              <Pressable onPress={() => router.push('/(tabs)/gigs')}>
+              <Pressable onPress={() => router.push('/(tabs)/crew')}>
                 <Text style={styles.seeAll}>Browse all</Text>
               </Pressable>
             </View>
@@ -322,11 +361,18 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitle: { ...typography.sectionTitle, color: colors.textPrimary, fontFamily: 'Inter_700Bold' },
   seeAll: { ...typography.bodyMedium, color: colors.accentPrimary, fontFamily: 'Inter_600SemiBold' },
-  // Hero Card
-  heroCard: { borderRadius: radius.card, overflow: 'hidden', height: 220, justifyContent: 'flex-end' },
-  heroCardImage: { ...StyleSheet.absoluteFillObject },
+  heroCard: { borderRadius: radius.card, overflow: 'hidden', aspectRatio: 1.55, justifyContent: 'flex-end' },
+  heroCardImage: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
   tonightChip: { position: 'absolute', top: 16, right: 16, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.accentPrimary, borderRadius: radius.chip, paddingHorizontal: 10, paddingVertical: 5 },
   tonightChipText: { fontSize: 11, fontFamily: 'Inter_700Bold', color: '#fff', letterSpacing: 0.5 },
+  crewChipContainer: { position: 'absolute', top: 16, left: 16 },
+  crewStack: { flexDirection: 'row', alignItems: 'center' },
+  crewAvatarWrapper: { width: CREW_AVATAR_SIZE, height: CREW_AVATAR_SIZE, borderRadius: CREW_AVATAR_SIZE / 2, borderWidth: 2, borderColor: 'rgba(255,255,255,0.9)', overflow: 'hidden' },
+  crewAvatarImg: { width: '100%', height: '100%', borderRadius: CREW_AVATAR_SIZE / 2 },
+  crewAvatarFallback: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
+  crewAvatarInitial: { fontSize: 11, fontFamily: 'Inter_700Bold', color: '#fff' },
+  crewAvatarMore: { backgroundColor: colors.accentLavender, alignItems: 'center', justifyContent: 'center' },
+  crewMoreText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: '#fff' },
   heroCardContent: { padding: spacing.md, gap: 3 },
   heroCardTitle: { fontSize: 22, fontFamily: 'Inter_700Bold', color: '#fff' },
   heroCardOrg: { fontSize: 13, color: 'rgba(255,255,255,0.8)', fontFamily: 'Inter_500Medium' },

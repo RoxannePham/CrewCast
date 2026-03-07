@@ -151,7 +151,31 @@ export default function EventDetailScreen() {
         </View>
         <View style={styles.heroTitle}>
           <Text style={styles.heroEventTitle}>{event.title}</Text>
-          <Text style={styles.heroOrg}>{event.orgName}</Text>
+          <View style={styles.heroSubRow}>
+            <Text style={styles.heroOrg}>{event.orgName}</Text>
+            {event.confirmedCrewIds.length > 0 && (
+              <View style={styles.heroCrewChip}>
+                <View style={styles.heroCrewDots}>
+                  {event.confirmedCrewIds.slice(0, 3).map((wId, i) => {
+                    const w = mockWorkers.find(x => x.id === wId);
+                    if (!w) return null;
+                    return (
+                      <View key={wId} style={[styles.heroCrewDot, { marginLeft: i > 0 ? -6 : 0, zIndex: 3 - i }]}>
+                        {w.portraitPath ? (
+                          <Image source={w.portraitPath} style={styles.heroCrewDotImg} />
+                        ) : (
+                          <View style={[styles.heroCrewDotFb, { backgroundColor: w.avatarColor }]}>
+                            <Text style={styles.heroCrewDotInit}>{w.name.charAt(0)}</Text>
+                          </View>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+                <Text style={styles.heroCrewCount}>{event.confirmedCrewIds.length} crew</Text>
+              </View>
+            )}
+          </View>
         </View>
       </View>
 
@@ -310,12 +334,12 @@ export default function EventDetailScreen() {
   );
 }
 
-const HERO_HEIGHT = 260;
+const HERO_HEIGHT = 300;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.backgroundPrimary },
   heroContainer: { height: HERO_HEIGHT, position: 'relative' },
-  heroImage: { width: '100%', height: HERO_HEIGHT },
+  heroImage: { width: '100%', height: HERO_HEIGHT, resizeMode: 'cover' as any },
   heroOverlay: {
     position: 'absolute', top: 0, left: 0, right: 0,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
@@ -335,6 +359,14 @@ const styles = StyleSheet.create({
   heroTitle: { position: 'absolute', bottom: 20, left: spacing.md, right: spacing.md },
   heroEventTitle: { fontSize: 24, fontFamily: 'Inter_700Bold', color: '#fff', textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 },
   heroOrg: { fontSize: 13, fontFamily: 'Inter_500Medium', color: 'rgba(255,255,255,0.85)' },
+  heroSubRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 },
+  heroCrewChip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4 },
+  heroCrewDots: { flexDirection: 'row', alignItems: 'center' },
+  heroCrewDot: { width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.8)', overflow: 'hidden' },
+  heroCrewDotImg: { width: '100%', height: '100%' },
+  heroCrewDotFb: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
+  heroCrewDotInit: { fontSize: 9, fontFamily: 'Inter_700Bold', color: '#fff' },
+  heroCrewCount: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#fff' },
   tabs: { flexDirection: 'row', backgroundColor: colors.surfaceCard, marginHorizontal: spacing.md, borderRadius: radius.button, padding: 4, marginTop: spacing.md, marginBottom: 2 },
   tab: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: radius.button - 2 },
   tabActive: { backgroundColor: colors.backgroundPrimary },
