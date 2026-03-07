@@ -1,12 +1,11 @@
-// template
-const tintColorLight = "#2f95dc";
+import { colors } from './theme';
 
 export default {
   light: {
-    text: "#000",
-    background: "#fff",
-    tint: tintColorLight,
-    tabIconDefault: "#ccc",
-    tabIconSelected: tintColorLight,
+    text: colors.textPrimary,
+    background: colors.backgroundPrimary,
+    tint: colors.accentPrimary,
+    tabIconDefault: colors.textMuted,
+    tabIconSelected: colors.accentPrimary,
   },
 };
