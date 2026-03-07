@@ -7,9 +7,11 @@ interface StarRatingProps {
   rating: number;
   size?: number;
   showNumber?: boolean;
+  showCount?: boolean;
+  count?: number;
 }
 
-export function StarRating({ rating, size = 13, showNumber = true }: StarRatingProps) {
+export function StarRating({ rating, size = 13, showNumber = true, showCount = false, count }: StarRatingProps) {
   const full = Math.floor(rating);
   const hasHalf = rating % 1 >= 0.5;
 
@@ -32,6 +34,9 @@ export function StarRating({ rating, size = 13, showNumber = true }: StarRatingP
       {showNumber && (
         <Text style={[styles.number, { fontSize: size }]}>{rating.toFixed(1)}</Text>
       )}
+      {showCount && count !== undefined && (
+        <Text style={[styles.count, { fontSize: size }]}>({count})</Text>
+      )}
     </View>
   );
 }
@@ -46,5 +51,11 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginLeft: 4,
     fontFamily: 'Inter_600SemiBold',
+  },
+  count: {
+    ...typography.metaMedium,
+    color: colors.textMuted,
+    marginLeft: 2,
+    fontFamily: 'Inter_400Regular',
   },
 });

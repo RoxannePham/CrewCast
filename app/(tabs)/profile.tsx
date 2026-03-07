@@ -1,346 +1,248 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  Platform,
+  View, Text, StyleSheet, ScrollView, Pressable, Platform, Switch
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { colors, typography, spacing, radius, shadow } from '@/constants/theme';
 import { Avatar } from '@/components/ui/Avatar';
 import { StarRating } from '@/components/ui/StarRating';
-import { Chip } from '@/components/ui/Chip';
 import { Badge } from '@/components/ui/Badge';
+import { Chip } from '@/components/ui/Chip';
+import { useAuth } from '@/context/AuthContext';
+import { useNotifications } from '@/context/NotificationsContext';
+import { useApp } from '@/context/AppContext';
+import { WorkerProfile } from '@/data/mockUsers';
 
-const PORTFOLIO_COLORS = [
-  colors.accentLavender,
-  colors.accentPrimary + '80',
-  colors.accentMint,
-  colors.accentPeach,
-];
-
-const SKILLS = ['House', 'EDM', 'Hip-Hop', 'Latin', 'Techno', 'Deep House'];
-
-const REVIEWS = [
-  {
-    id: '1',
-    author: 'Jordan W.',
-    rating: 5,
-    text: 'Alex absolutely killed it at our party. Everyone was dancing all night!',
-    date: 'Mar 2026',
-    avatarColor: colors.accentMint,
-  },
-  {
-    id: '2',
-    author: 'Taylor S.',
-    rating: 5,
-    text: 'Super professional, arrived early, read the crowd perfectly.',
-    date: 'Feb 2026',
-    avatarColor: colors.accentBlue,
-  },
-];
+function StatBox({ label, value, color }: { label: string; value: string | number; color: string }) {
+  return (
+    <View style={[styles.statBox, shadow.card]}>
+      <Text style={[styles.statValue, { color }]}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const topPadding = Platform.OS === 'web' ? 67 : insets.top;
+  const { user, signOut } = useAuth();
+  const { unreadCount } = useNotifications();
+  const { applications, bookedWorkers } = useApp();
+  const [notifOn, setNotifOn] = useState(true);
+  const topPad = Platform.OS === 'web' ? 67 : insets.top;
+  const botPad = Platform.OS === 'web' ? 34 : insets.bottom;
+
+  if (!user) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <Ionicons name="person-outline" size={60} color={colors.textMuted} />
+        <Text style={styles.noUserTitle}>Not signed in</Text>
+        <Pressable onPress={() => router.push('/auth/login')} style={styles.signInBtn}>
+          <Text style={styles.signInBtnText}>Sign In</Text>
+        </Pressable>
+        <Pressable onPress={() => router.push('/onboarding')} style={styles.signUpLink}>
+          <Text style={styles.signUpLinkText}>Create an account</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  const isWorker = user.type === 'worker';
+  const worker = isWorker ? (user as WorkerProfile) : null;
+  const myApplications = applications.filter(a => a.workerId === user.id);
 
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={[styles.content, { paddingBottom: Platform.OS === 'web' ? 84 : 100 }]}
+      contentContainerStyle={[styles.content, { paddingTop: topPad + 12, paddingBottom: botPad + 80 }]}
       showsVerticalScrollIndicator={false}
     >
-      <View style={[styles.headerArea, { paddingTop: topPadding + 12 }]}>
-        <View style={styles.headerActions}>
-          <Pressable style={styles.iconBtn}>
-            <Feather name="settings" size={20} color={colors.textSecondary} />
-          </Pressable>
-          <Pressable style={styles.iconBtn}>
-            <Feather name="share-2" size={20} color={colors.textSecondary} />
-          </Pressable>
-        </View>
-
-        <View style={styles.avatarSection}>
-          <Avatar name="Alex Kim" avatarColor={colors.accentLavender} size={84} />
-          <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>Alex Kim</Text>
-            <Text style={styles.profileRole}>DJ • Creator</Text>
-            <View style={styles.ratingRow}>
-              <StarRating rating={4.9} size={15} />
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.statsRow}>
-          {[
-            { label: 'Gigs', value: '23' },
-            { label: 'Reliability', value: '97%' },
-            { label: 'On Time', value: '98%' },
-            { label: 'Reviews', value: '18' },
-          ].map(stat => (
-            <View key={stat.label} style={styles.statItem}>
-              <Text style={styles.statValue}>{stat.value}</Text>
-              <Text style={styles.statLabel}>{stat.label}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <LinearGradient
-          colors={[colors.accentPrimary + '20', colors.accentLavender + '20']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.reliabilityCard}
+      {/* Header with notification button */}
+      <View style={styles.topBar}>
+        <Pressable
+          onPress={() => router.push('/notifications')}
+          style={[styles.iconBtn, shadow.card]}
         >
-          <View style={styles.reliabilityHeader}>
-            <MaterialCommunityIcons name="shield-check" size={22} color={colors.accentPrimary} />
-            <Text style={styles.reliabilityTitle}>Reliability Score</Text>
-          </View>
-          <Text style={styles.reliabilityScore}>4.8</Text>
-          <View style={styles.reliabilityMeta}>
-            <View style={styles.reliabilityItem}>
-              <Ionicons name="time-outline" size={14} color={colors.textMuted} />
-              <Text style={styles.reliabilityMetaText}>98% on time</Text>
-            </View>
-            <View style={styles.reliabilityItem}>
-              <Feather name="check-circle" size={14} color={colors.textMuted} />
-              <Text style={styles.reliabilityMetaText}>17 gigs completed</Text>
-            </View>
-          </View>
-          <View style={styles.badgesRow}>
-            <Badge label="Top Rated" type="toprated" />
-            <Badge label="On Time" type="ontime" />
-            <Badge label="Campus Verified" type="campusverified" />
-          </View>
-        </LinearGradient>
+          <Ionicons name="notifications-outline" size={20} color={colors.textSecondary} />
+          {unreadCount > 0 && <View style={styles.notifDot}><Text style={styles.notifDotText}>{unreadCount}</Text></View>}
+        </Pressable>
+        <Pressable onPress={async () => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          await signOut();
+          router.replace('/onboarding');
+        }} style={[styles.iconBtn, shadow.card]}>
+          <Ionicons name="log-out-outline" size={20} color={colors.textSecondary} />
+        </Pressable>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Skills</Text>
-        <View style={styles.skillsWrap}>
-          {SKILLS.map(skill => (
-            <Chip key={skill} label={skill} />
-          ))}
-        </View>
+      {/* Hero */}
+      <View style={styles.hero}>
+        <LinearGradient
+          colors={[user.avatarColor + '60', user.avatarColor + '20', colors.backgroundPrimary]}
+          style={StyleSheet.absoluteFill}
+        />
+        <Avatar
+          size={100}
+          name={user.name}
+          imageSource={isWorker && worker ? worker.portraitPath : null}
+          backgroundColor={user.avatarColor}
+          showBorder
+        />
+        <Text style={styles.name}>{user.name}</Text>
+        <Text style={styles.school}>{isWorker ? (user as WorkerProfile).school : (user as any).orgName}</Text>
+        {isWorker && worker && (
+          <View style={styles.badgeRow}>
+            {worker.isTopRated && <Badge variant="topRated" />}
+            {worker.isOnTime && <Badge variant="onTime" />}
+            {worker.isCampusVerified && <Badge variant="campusVerified" />}
+          </View>
+        )}
+        {isWorker && worker && <StarRating rating={worker.rating} size={14} showCount count={worker.gigs} />}
       </View>
 
-      <View style={styles.section}>
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Portfolio</Text>
-          <Pressable>
-            <Feather name="plus" size={20} color={colors.accentPrimary} />
-          </Pressable>
+      {/* Stats */}
+      {isWorker && worker && (
+        <View style={styles.statsRow}>
+          <StatBox label="Gigs" value={worker.gigs} color={colors.accentPrimary} />
+          <StatBox label="Rating" value={`${worker.rating}★`} color={colors.starGold} />
+          <StatBox label="On Time" value={`${worker.onTimePercent}%`} color={colors.accentMint.replace('BFF0D4', '#1A6635')} />
+          <StatBox label="Applied" value={myApplications.length} color={colors.accentLavender} />
         </View>
-        <View style={styles.portfolioGrid}>
-          {PORTFOLIO_COLORS.map((color, i) => (
-            <View key={i} style={[styles.portfolioItem, { backgroundColor: color }]}>
-              <Ionicons name="musical-notes" size={24} color="rgba(255,255,255,0.6)" />
-            </View>
-          ))}
-        </View>
-      </View>
+      )}
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Reviews</Text>
-        {REVIEWS.map(review => (
-          <View key={review.id} style={[styles.reviewCard, shadow.card]}>
-            <View style={styles.reviewHeader}>
-              <Avatar name={review.author} avatarColor={review.avatarColor} size={36} />
-              <View style={styles.reviewInfo}>
-                <Text style={styles.reviewAuthor}>{review.author}</Text>
-                <StarRating rating={review.rating} size={12} showNumber={false} />
+      {/* Roles & Skills */}
+      {isWorker && worker && (
+        <View style={[styles.card, shadow.card]}>
+          <Text style={styles.cardTitle}>Roles</Text>
+          <View style={styles.chipRow}>
+            {worker.roles.map(r => <Chip key={r} label={r} variant="pink" />)}
+          </View>
+          <Text style={[styles.cardTitle, { marginTop: 8 }]}>Skills</Text>
+          <View style={styles.chipRow}>
+            {worker.skills.map(s => <Chip key={s} label={s} variant="default" />)}
+          </View>
+        </View>
+      )}
+
+      {/* Applications */}
+      {isWorker && myApplications.length > 0 && (
+        <View style={[styles.card, shadow.card]}>
+          <Text style={styles.cardTitle}>My Applications</Text>
+          {myApplications.slice(0, 5).map(app => (
+            <View key={app.id} style={styles.appRow}>
+              <View style={[styles.appStatus, { backgroundColor: STATUS_COLORS[app.status] + '20' }]}>
+                <Text style={[styles.appStatusText, { color: STATUS_COLORS[app.status] }]}>{app.status}</Text>
               </View>
-              <Text style={styles.reviewDate}>{review.date}</Text>
+              <View style={styles.appInfo}>
+                <Text style={styles.appRoleId}>{app.roleId}</Text>
+                <Text style={styles.appTime}>{app.appliedAt}</Text>
+              </View>
             </View>
-            <Text style={styles.reviewText}>{review.text}</Text>
-          </View>
+          ))}
+        </View>
+      )}
+
+      {/* Settings */}
+      <View style={[styles.card, shadow.card]}>
+        <Text style={styles.cardTitle}>Settings</Text>
+        {[
+          { icon: 'person-outline' as const, label: 'Edit Profile' },
+          { icon: 'notifications-outline' as const, label: 'Notifications', badge: unreadCount },
+          { icon: 'mail-outline' as const, label: 'Messages', onPress: () => router.push('/messages') },
+          { icon: 'shield-checkmark-outline' as const, label: 'Privacy & Safety' },
+          { icon: 'help-circle-outline' as const, label: 'Help & Support' },
+        ].map(item => (
+          <Pressable key={item.label} onPress={item.onPress} style={styles.settingRow}>
+            <View style={[styles.settingIconWrap, { backgroundColor: colors.accentLavender + '25' }]}>
+              <Ionicons name={item.icon} size={18} color={colors.accentLavender} />
+            </View>
+            <Text style={styles.settingLabel}>{item.label}</Text>
+            <View style={styles.settingRight}>
+              {item.badge && item.badge > 0 ? (
+                <View style={styles.settingBadge}><Text style={styles.settingBadgeText}>{item.badge}</Text></View>
+              ) : null}
+              <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+            </View>
+          </Pressable>
         ))}
+        <View style={styles.settingRow}>
+          <View style={[styles.settingIconWrap, { backgroundColor: colors.accentPrimary + '15' }]}>
+            <Ionicons name="notifications-outline" size={18} color={colors.accentPrimary} />
+          </View>
+          <Text style={styles.settingLabel}>Push Notifications</Text>
+          <Switch
+            value={notifOn}
+            onValueChange={v => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setNotifOn(v); }}
+            trackColor={{ false: colors.borderSubtle, true: colors.accentPrimary + '80' }}
+            thumbColor={notifOn ? colors.accentPrimary : '#f4f3f4'}
+          />
+        </View>
       </View>
+
+      {/* Sign out */}
+      <Pressable
+        onPress={async () => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          await signOut();
+          router.replace('/onboarding');
+        }}
+        style={({ pressed }) => [styles.signOutBtn, { opacity: pressed ? 0.85 : 1 }]}
+      >
+        <Text style={styles.signOutText}>Sign Out</Text>
+      </Pressable>
     </ScrollView>
   );
 }
 
+const STATUS_COLORS: Record<string, string> = {
+  pending: colors.starGold,
+  shortlisted: colors.accentLavender,
+  messaged: colors.accentBlue,
+  booked: '#1A6635',
+  accepted: '#1A6635',
+  declined: colors.accentPrimary,
+  withdrawn: colors.textMuted,
+};
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.backgroundPrimary,
-  },
-  content: {
-    gap: 0,
-  },
-  headerArea: {
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.lg,
-    backgroundColor: colors.backgroundPrimary,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.surfaceCard,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shadow.card,
-  },
-  avatarSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.lg,
-  },
-  profileInfo: {
-    gap: 4,
-  },
-  profileName: {
-    ...typography.eventTitle,
-    color: colors.textPrimary,
-    fontFamily: 'Inter_700Bold',
-    fontSize: 26,
-  },
-  profileRole: {
-    ...typography.body,
-    color: colors.textSecondary,
-    fontFamily: 'Inter_400Regular',
-  },
-  ratingRow: {
-    marginTop: 2,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    backgroundColor: colors.surfaceCard,
-    borderRadius: radius.card,
-    padding: spacing.md,
-    ...shadow.card,
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 2,
-  },
-  statValue: {
-    ...typography.cardTitle,
-    color: colors.textPrimary,
-    fontFamily: 'Inter_700Bold',
-    fontSize: 18,
-  },
-  statLabel: {
-    ...typography.meta,
-    color: colors.textMuted,
-    fontFamily: 'Inter_400Regular',
-  },
-  section: {
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.xl,
-    gap: spacing.sm,
-  },
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  sectionTitle: {
-    ...typography.sectionTitle,
-    color: colors.textPrimary,
-    fontFamily: 'Inter_700Bold',
-  },
-  reliabilityCard: {
-    borderRadius: radius.card,
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  reliabilityHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  reliabilityTitle: {
-    ...typography.cardTitle,
-    color: colors.textPrimary,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  reliabilityScore: {
-    fontSize: 48,
-    fontFamily: 'Inter_700Bold',
-    color: colors.accentPrimary,
-    lineHeight: 56,
-  },
-  reliabilityMeta: {
-    gap: 6,
-  },
-  reliabilityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  reliabilityMetaText: {
-    ...typography.body,
-    color: colors.textSecondary,
-    fontFamily: 'Inter_400Regular',
-  },
-  badgesRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 4,
-  },
-  skillsWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  portfolioGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  portfolioItem: {
-    width: '47%',
-    height: 100,
-    borderRadius: radius.small,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  reviewCard: {
-    backgroundColor: colors.surfaceCard,
-    borderRadius: radius.card,
-    padding: spacing.md,
-    gap: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  reviewHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  reviewInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  reviewAuthor: {
-    ...typography.bodyMedium,
-    color: colors.textPrimary,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  reviewDate: {
-    ...typography.meta,
-    color: colors.textMuted,
-    fontFamily: 'Inter_400Regular',
-  },
-  reviewText: {
-    ...typography.body,
-    color: colors.textSecondary,
-    lineHeight: 20,
-    fontFamily: 'Inter_400Regular',
-  },
+  container: { flex: 1, backgroundColor: colors.backgroundPrimary },
+  content: { paddingHorizontal: spacing.md, gap: spacing.md },
+  centered: { alignItems: 'center', justifyContent: 'center' },
+  topBar: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm },
+  iconBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.surfaceCard, alignItems: 'center', justifyContent: 'center' },
+  notifDot: { position: 'absolute', top: 8, right: 8, width: 14, height: 14, borderRadius: 7, backgroundColor: colors.accentPrimary, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.backgroundPrimary },
+  notifDotText: { fontSize: 7, fontFamily: 'Inter_700Bold', color: '#fff' },
+  hero: { alignItems: 'center', paddingVertical: spacing.lg, gap: spacing.sm, borderRadius: radius.card, overflow: 'hidden' },
+  name: { fontSize: 26, fontFamily: 'Inter_700Bold', color: colors.textPrimary },
+  school: { ...typography.body, color: colors.textMuted, fontFamily: 'Inter_400Regular' },
+  badgeRow: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' },
+  statsRow: { flexDirection: 'row', gap: spacing.sm },
+  statBox: { flex: 1, backgroundColor: colors.surfaceCard, borderRadius: radius.card, padding: spacing.sm, alignItems: 'center', gap: 3 },
+  statValue: { fontSize: 20, fontFamily: 'Inter_700Bold' },
+  statLabel: { ...typography.meta, color: colors.textMuted, fontFamily: 'Inter_400Regular', textAlign: 'center' },
+  card: { backgroundColor: colors.surfaceCard, borderRadius: radius.card, padding: spacing.md, gap: spacing.sm },
+  cardTitle: { ...typography.sectionTitle, color: colors.textPrimary, fontFamily: 'Inter_700Bold' },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  appRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  appStatus: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.chip },
+  appStatusText: { fontSize: 11, fontFamily: 'Inter_600SemiBold' },
+  appInfo: { flex: 1, gap: 1 },
+  appRoleId: { ...typography.meta, color: colors.textSecondary, fontFamily: 'Inter_500Medium' },
+  appTime: { ...typography.meta, color: colors.textMuted, fontFamily: 'Inter_400Regular' },
+  settingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 6 },
+  settingIconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  settingLabel: { flex: 1, ...typography.body, color: colors.textPrimary, fontFamily: 'Inter_500Medium' },
+  settingRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  settingBadge: { backgroundColor: colors.accentPrimary, borderRadius: 10, paddingHorizontal: 6, paddingVertical: 2 },
+  settingBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: '#fff' },
+  signOutBtn: { backgroundColor: colors.accentPrimary + '15', borderRadius: radius.button, paddingVertical: 14, alignItems: 'center', marginTop: spacing.sm },
+  signOutText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: colors.accentPrimary },
+  noUserTitle: { fontSize: 22, fontFamily: 'Inter_700Bold', color: colors.textSecondary, marginTop: spacing.md },
+  signInBtn: { backgroundColor: colors.accentPrimary, borderRadius: radius.button, paddingVertical: 14, paddingHorizontal: spacing.xxl, marginTop: spacing.md },
+  signInBtnText: { fontSize: 16, fontFamily: 'Inter_700Bold', color: '#fff' },
+  signUpLink: { marginTop: spacing.sm },
+  signUpLinkText: { ...typography.body, color: colors.accentPrimary, fontFamily: 'Inter_600SemiBold' },
 });

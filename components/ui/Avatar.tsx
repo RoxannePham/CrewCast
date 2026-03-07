@@ -6,19 +6,46 @@ import { typography, radius } from '@/constants/theme';
 interface AvatarProps {
   name: string;
   avatarColor?: string;
+  backgroundColor?: string;
   size?: number;
   imageUri?: string;
+  imageSource?: any;
+  showBorder?: boolean;
 }
 
-export function Avatar({ name, avatarColor = '#CDB9FF', size = 40, imageUri }: AvatarProps) {
+export function Avatar({
+  name,
+  avatarColor,
+  backgroundColor,
+  size = 40,
+  imageUri,
+  imageSource,
+  showBorder = false,
+}: AvatarProps) {
+  const bgColor = backgroundColor || avatarColor || '#CDB9FF';
   const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
   const fontSize = size * 0.38;
+
+  const borderStyle = showBorder ? {
+    borderWidth: 3,
+    borderColor: '#fff',
+  } : {};
+
+  if (imageSource) {
+    return (
+      <Image
+        source={imageSource}
+        style={[{ width: size, height: size, borderRadius: size / 2 }, borderStyle]}
+        contentFit="cover"
+      />
+    );
+  }
 
   if (imageUri) {
     return (
       <Image
         source={{ uri: imageUri }}
-        style={{ width: size, height: size, borderRadius: size / 2 }}
+        style={[{ width: size, height: size, borderRadius: size / 2 }, borderStyle]}
         contentFit="cover"
       />
     );
@@ -27,7 +54,8 @@ export function Avatar({ name, avatarColor = '#CDB9FF', size = 40, imageUri }: A
   return (
     <View style={[
       styles.container,
-      { width: size, height: size, borderRadius: size / 2, backgroundColor: avatarColor }
+      { width: size, height: size, borderRadius: size / 2, backgroundColor: bgColor },
+      borderStyle,
     ]}>
       <Text style={[styles.initials, { fontSize }]}>{initials}</Text>
     </View>

@@ -1,0 +1,464 @@
+================================================== ONBOARDING + AUTH
+Create a complete onboarding and login flow:
+
+Splash screen
+Welcome screen:
+• “I want to work events”
+• “I organize events”
+Authentication screens
+• Sign up
+• Log in
+Role selection (worker or host)
+Worker setup flow
+Host setup flow
+Worker setup must collect:
+• Full name
+• Age
+• Gender
+• Profile photo upload
+• School/organization/company
+• City/campus area
+• Short bio
+• Role types (DJ, photographer, videographer, etc.)
+• Skills/tags
+• Years of experience
+• Portfolio links
+• Resume/CV PDF
+• Social links (optional)
+• Availability
+• Do they have equipment
+• Can they travel
+• Preferred event types
+• Payment preferences
+• Emergency contact (optional)
+• Verification placeholder
+
+Host setup must collect:
+• Host name
+• Organization/company/club name
+• Role (Organizer, Promoter, Manager, Social Chair, etc.)
+• School/company affiliation
+• City/campus area
+• Event types they host
+• Budget range
+• Org logo or cover photo
+• Contact info
+
+================================================== HOME TAB
+Include: • Search bar
+• Location chip
+• Notifications icon
+• Messages shortcut
+• Recent activity shortcut
+• Tonight Near You (event cards)
+• Recommended For You
+• Confirmed Crew
+• Community Feed preview
+
+Use real-looking event photography and consistent seeded portraits for users.
+
+================================================== SEEDED IMAGES + MOCK ASSETS
+Implement a fixed mock asset strategy: • /assets/mock/users
+• /assets/mock/events
+
+Each mock user has:
+• portraitPath
+• consistent face across all screens
+
+Each event has:
+• coverImagePath
+• galleryImages
+
+Seed: • 10 realistic user portraits (college-age or young professional)
+• 6 mock hosts
+• 8 mock events
+• 20+ applications
+• 3 event group chats
+• 2 DM threads
+• 8+ reviews
+• 1 resume PDF per worker
+
+Keep all portraits and events natural and candid. No abstract blobs.
+
+Include seeded example users such as:
+• Alex Kim – DJ / Creator
+• Maya Chen – Photographer
+• Jordan Walsh – Videographer
+• Jessica McCall – Host
+• Sean Brody – Organizer
+
+================================================== GIGS TAB — FULL FILTER SYSTEM
+The Gigs screen must fully work, not just UI.
+
+Include filters: • Role type: All, DJ, Photographer, Videographer, Host/MC, Content Creator, Bartender, Security, Volunteer, Setup Crew
+• Pay range
+• Distance
+• Date
+• Event type
+• Location
+• Shift duration
+
+Sorting: • Nearest
+• Highest pay
+• Best match
+• Newest
+• Soonest
+
+Search input to filter by keyword.
+
+Selected filter chips must visually update.
+Filters must combine logically.
+A “Clear filters” option must reset everything.
+
+Each gig card must include: • Role title
+• Event title
+• Location
+• Time
+• Pay
+• Slots
+• Tags
+• Event type
+• Apply button
+
+================================================== EVENT DETAIL SCREEN (FULLY EXPANDED)
+Must include: • Hero image
+• Title
+• Date/time
+• Location
+• Host/org name
+• Weather card
+• Map/directions card
+• Dress code/vibe
+• Open roles
+• Confirmed crew
+• Event description
+• Event gallery
+• Applicant count per role
+• Staffing progress bar
+• Host notes/instructions
+• Share/save
+• Sticky CTA bar
+
+================================================== POST TAB — EVENT CREATION
+Form must include: • Event name
+• Date
+• Time
+• Location
+• Event type
+• Expected attendance
+• Theme/vibe
+• Cover photo upload
+• Multi-select roles
+• Per-role details:
+• Pay
+• Slots
+• Shift times
+• Required skills
+• Perks
+• Notes for applicants
+• Publish button
+
+Posted events appear in host dashboard and Gigs feed.
+
+================================================== APPLICATION FLOW
+When worker taps Apply, the system must:
+
+Create an application record
+Attach worker’s full saved profile: • profile photo
+• bio
+• resume/CV file
+• portfolio
+• skills/tags
+• role types
+• ratings
+• reliability stats
+Mark application as pending
+Notify the host
+Update role applicant count
+Application statuses: • pending
+• shortlisted
+• messaged
+• booked
+• accepted
+• declined
+• withdrawn
+
+================================================== CANDIDATE REVIEW + BOOKING
+Hosts must see applicant list for each role, including: • Photo
+• Full name
+• Primary role
+• Location
+• Avg rating
+• Reliability score
+• Completed gigs
+• Skills/tags
+• Resume/CV link
+• Portfolio preview
+• Message
+• Book
+• Shortlist
+
+Applicant detail screen must include: • Hero profile
+• Bio
+• School/org
+• Resume preview
+• Portfolio grid
+• Reviews
+• Badges
+• Reliability breakdown
+• Past gigs
+• Equipment info
+• Availability
+• Message button
+
+================================================== AUTOMATIC EVENT GROUP CHAT
+When host books/accepts crew:
+
+Booking created
+User receives booking notification
+User must accept
+On acceptance → automatically create event-specific group chat
+Add all confirmed crew + host
+Event detail updates in real time
+Group chat includes: • pinned info
+• event location
+• call time
+• load-in instructions
+• host notes
+Group chat supports: • text
+• photos
+• “I’m here”
+• “Running late”
+• “Send exact location”
+• read receipts (optional)
+
+================================================== MESSAGING & DM INBOX
+Workers and hosts must exchange direct messages.
+
+DM inbox shows: • conversations
+• last message
+• unread badge
+
+================================================== PROFILE TAB (EXPANDED)
+Includes: • profile photo
+• name
+• role(s)
+• school/company
+• rating
+• gigs count
+• reliability %
+• on-time %
+• review count
+• reliability score card
+• badges
+• skills tags
+• portfolio grid
+• resume/CV
+• reviews
+• edit profile
+• settings
+• share profile
+• availability editor
+
+================================================== CREW TAB
+Contains: • event group chats
+• direct messages
+• hired crew lists (if host)
+• upcoming events
+• accepted gigs
+• pending offers
+• discussions/community
+
+================================================== NOTIFICATIONS SYSTEM (USER + HOST)
+Create a complete notifications system with a Notifications screen.
+
+Notification object: • id
+• type
+• senderId
+• recipientId
+• eventId
+• roleId
+• applicationId
+• message
+• createdAt
+• isRead
+
+Notification types include: • new_application
+• user_shortlisted
+• user_messaged
+• booked
+• booking_accepted
+• booking_declined
+• added_to_group_chat
+• new_chat_message
+• event_updated
+• role_filled
+• check_in_reminder
+• announcement
+
+HOST receives: • new application
+• booking confirmations
+• group chat creation
+• applicant messages
+• event updates
+• role filled alerts
+• announcement acknowledgments
+
+USER receives: • shortlisted
+• booked
+• booking request
+• accepted
+• declined
+• added to event chat
+• host messages
+• event updates
+• check-in reminders
+
+Add notification badges to: • Top-right bell icon
+• Home tab
+• Crew tab for chat messages
+
+================================================== SEEDED NOTIFICATIONS
+Preload example notifications for testing:
+
+Host example notifications: • “Alex Kim applied for DJ — Greek Week Afterparty.”
+• “Maya Chen applied for Photographer — Startup Mixer.”
+• “Group chat created for Greek Week Afterparty.”
+• “Your event instructions have been updated.”
+• “2 new messages in Greek Week Afterparty chat.”
+
+User example notifications: • “You’ve been shortlisted for DJ — Greek Week Afterparty.”
+• “Your application to Startup Mixer was viewed.”
+• “Booking request from Jessica McCall.”
+• “You’ve been added to the Greek Week Afterparty crew chat.”
+
+================================================== RELIABILITY SCORE SYSTEM
+Use formula:
+
+𝑅
+=
+(
+0.25
+⋅
+𝑂
+𝑛
+𝑇
+𝑖
+𝑚
+𝑒
+)
++
+(
+0.25
+⋅
+𝐶
+𝑜
+𝑚
+𝑝
+𝑙
+𝑒
+𝑡
+𝑖
+𝑜
+𝑛
+)
++
+(
+0.25
+⋅
+𝑅
+𝑎
+𝑡
+𝑖
+𝑛
+𝑔
+)
++
+(
+0.15
+⋅
+𝑅
+𝑒
+𝑠
+𝑝
+𝑜
+𝑛
+𝑠
+𝑒
+𝑆
+𝑝
+𝑒
+𝑒
+𝑑
+)
++
+(
+0.10
+⋅
+𝑅
+𝑒
+𝑝
+𝑒
+𝑎
+𝑡
+𝐵
+𝑜
+𝑜
+𝑘
+𝑖
+𝑛
+𝑔
+𝑠
+)
+R=(0.25⋅OnTime)+(0.25⋅Completion)+(0.25⋅Rating)+(0.15⋅ResponseSpeed)+(0.10⋅RepeatBookings)
+Show: • reliability score
+• on-time %
+• gigs count
+
+================================================== EMPTY STATES
+Include: • no gigs match filters
+• no applicants
+• no messages
+• no confirmed crew
+• no events posted
+• upload portfolio prompt
+
+================================================== REQUIRED COMPONENTS
+Create reusable components: • AppHeader
+• SearchBar
+• FilterChip
+• EventCard
+• GigCard
+• ApplicantCard
+• CrewCard
+• ProfileStatsCard
+• TagPill
+• CTAButton
+• MessageBubble
+• SectionHeader
+• InfoCard
+
+================================================== DATA STRUCTURES
+Create interfaces for: User, HostProfile, WorkerProfile, Event, EventRole, Application, Booking, Message, Chat, Review, PortfolioItem, ResumeFile, Notification.
+
+Use mock files: • mockUsers.ts
+• mockHosts.ts
+• mockEvents.ts
+• mockApplications.ts
+• mockChats.ts
+• mockNotifications.ts
+
+================================================== FINAL REQUIREMENTS
+• All screens must be functional
+• All filters must work
+• All flows must connect end‑to‑end
+• Apply must auto‑attach saved profile
+• Booking must auto-create group chats
+• Notifications must update in real time (mocked)
+• Seed data must load automatically on first launch
+• UI must match the soft pastel style shown in the screenshots
+• All navigation must work
+• Fully functional prototype
+
+================================================== FINAL INSTRUCTION
+Implement everything above, complete the unfinished features, fix the current UI, connect all flows, and produce a fully functional CrewCast prototype with realistic seeded data, consistent seeded images, automatic application/booking/chat flows, and complete onboarding, notifications, messaging, and event management.

@@ -14,6 +14,9 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { queryClient } from "@/lib/query-client";
 import { AppProvider } from "@/context/AppContext";
+import { AuthProvider } from "@/context/AuthContext";
+import { NotificationsProvider } from "@/context/NotificationsContext";
+import { ChatProvider } from "@/context/ChatContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -21,6 +24,15 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="onboarding/index" options={{ headerShown: false }} />
+      <Stack.Screen name="onboarding/worker-setup" options={{ headerShown: false }} />
+      <Stack.Screen name="onboarding/host-setup" options={{ headerShown: false }} />
+      <Stack.Screen name="auth/login" options={{ headerShown: false }} />
+      <Stack.Screen name="event/[id]" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="candidate/[id]" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="messages/index" options={{ headerShown: false }} />
+      <Stack.Screen name="messages/[id]" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="notifications" options={{ headerShown: false, presentation: 'card' }} />
     </Stack>
   );
 }
@@ -44,13 +56,19 @@ export default function RootLayout() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <AppProvider>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <KeyboardProvider>
-              <RootLayoutNav />
-            </KeyboardProvider>
-          </GestureHandlerRootView>
-        </AppProvider>
+        <AuthProvider>
+          <AppProvider>
+            <NotificationsProvider>
+              <ChatProvider>
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                  <KeyboardProvider>
+                    <RootLayoutNav />
+                  </KeyboardProvider>
+                </GestureHandlerRootView>
+              </ChatProvider>
+            </NotificationsProvider>
+          </AppProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );
