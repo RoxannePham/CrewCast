@@ -1,0 +1,62 @@
+Build the UI to match the reference image exactly.
+
+Follow these rules:
+
+UI LAYOUT
+• Use a pastel, soft, Gen‑Z visual style
+• Rounded cards with strong depth and soft shadows
+• Use pink gradient accents for the “Post” tab and primary buttons
+• Bottom tab bar must match the image (Home, Gigs, Post, Crew, Profile)
+• Cards must have rounded corners (approx. 22px radius) and layered, floating look
+
+HOME SCREEN (MATCH THE LEFT SCREEN)
+• Search bar at top with rounded capsule
+• Location chip beneath search bar
+• “Tonight Near You” hero card with event image background, logo overlay, and Apply button
+• “Recommended For You” horizontal cards
+• “Confirmed Crew” card list with avatar, name, rating, and reliability score
+• Pastel backgrounds and blurred layers where appropriate
+
+CANDIDATES SCREEN (MATCH THE CENTER SCREEN)
+• Header with app name and notification icon
+• Large candidate card with hero image and details section beneath
+• Candidate info: name, star rating, gig count, status badges, verification icons
+• “Book” button in pink gradient
+• Additional candidates listed in scrollable list format, each with tags (e.g. EDM, House Party)
+
+DISCUSSIONS SCREEN (MATCH THE RIGHT SCREEN)
+• Top horizontal category filters (For You, Location, Media Type, Tips)
+• “What’s on your mind?” composer card
+• Feed cards with profile avatar, name, short description, reactions, replies count
+• Event posts with image grid and pinned comments
+• Soft purple‑pink overlay theme for this tab
+
+COLORS
+Use the exact pastel palette from the design system (pink, peach, lavender, mint, blue).
+
+TYPOGRAPHY
+Match sizes, weights, and hierarchy shown in the UI:
+• Big event titles
+• Medium section headers
+• Clear tag chips
+• Subtle meta info with muted colors
+
+COMPONENTS
+The following must visually match the picture:
+• Search bar
+• Chips and tags
+• Hero event card
+• Candidate card
+• Reaction / reply bar
+• Image grids
+• Bottom navigation bar icons + labels
+
+INTERACTIONS
+• Touchable cards: subtle scale-on-press
+• Gradient buttons: smooth transition
+• Chips scroll horizontally
+• Lists scroll vertically with soft momentum
+
+OVERALL REQUIREMENT
+Recreate the UI exactly as shown in the reference image, matching:
+colors, spacing, card shapes, shadows, typography, button styles, gradients, and layout structure.

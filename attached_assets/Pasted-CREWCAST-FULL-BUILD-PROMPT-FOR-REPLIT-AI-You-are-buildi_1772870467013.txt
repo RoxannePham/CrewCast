@@ -1,0 +1,360 @@
+CREWCAST — FULL BUILD PROMPT FOR REPLIT AI
+
+You are building a complete mobile application called “CrewCast.”
+Use React Native + Expo + TypeScript for the frontend, and Node.js + Express + PostgreSQL + Prisma + JWT + Socket.io for the backend.
+Follow every instruction exactly.
+
+APP PURPOSE
+CrewCast is a Gen‑Z event staffing platform connecting:
+• Event Hosts (party organizers, promoters, student groups, brands)
+• Crew Members (DJs, photographers, videographers, creators, volunteers)
+
+Hosts can:
+• Post events
+• Add roles
+• Receive applications
+• Book workers
+• Chat with confirmed crew
+
+Crew can:
+• Discover gigs
+• Apply quickly
+• Get booked
+• Build a reliability score
+
+UI STYLE
+Design style: Partiful + Spotify + Instagram + pastel Gen‑Z aesthetic
+
+TECH STACK
+Frontend: React Native, Expo, TypeScript, Zustand or Redux Toolkit, React Navigation
+Backend: Node.js, Express, Prisma ORM, PostgreSQL, JWT authentication, Socket.io
+Storage: AWS S3 or Supabase Storage
+
+PROJECT STRUCTURE
+Use this exact structure:
+
+crewcast-app
+src
+components
+screens
+navigation
+store
+services
+hooks
+styles
+types
+backend
+src
+routes
+controllers
+models
+middleware
+utils
+
+DESIGN SYSTEM (implement exactly)
+
+Colors (theme.ts): backgroundPrimary #F6F1E8
+backgroundSecondary #EFE8DC
+surfaceCard #FFFFFF
+surfaceTint #F7F3EC
+borderSubtle #E6DED1
+accentPrimary #FF7B8A
+accentPrimaryHover #FF667A
+accentPrimaryPressed #FF5E73
+accentLavender #CDB9FF
+accentBlue #B9D9FF
+accentMint #BFF0D4
+accentPeach #FFD9B8
+textPrimary #1E1E1E
+textSecondary #5A5A5A
+textMuted #8F8F8F
+textInverse #FFFFFF
+
+Typography (typography.ts):
+EventTitle size 30 bold
+SectionTitle size 18 semibold
+CardTitle size 16 semibold
+Body size 14
+Meta size 12
+
+Layout:
+• 8px spacing grid
+• Card radius 22px
+• Button radius 999px
+• Soft pastel shadow
+
+COMPONENT LIBRARY
+Core components:
+• PrimaryButton
+• SecondaryButton
+• IconButton
+• FAB (“Post”)
+• SearchBar
+• SectionHeader
+• Pill / Chip
+
+Media components:
+• Avatar
+• Badge
+• HeroHeader
+• ImageGrid
+
+Card components:
+• EventCard
+• GigCard
+• RoleCard
+• CrewCard
+• CandidateCard
+• DiscussionPostCard
+• InfoCard (Weather / Parking / Map)
+
+NAVIGATION
+Bottom tab navigator: Home, Gigs, Post, Crew, Profile
+Stacks: Event stack, Chat stack, Profile settings, Event creation flow
+
+SCREENS
+HomeScreen
+• Search bar
+• Location chip
+• Tonight Near You
+• Recommended For You
+• Confirmed Crew
+
+GigsScreen
+• Scrollable list of roles
+• Swipe right to apply
+• Swipe left to dismiss
+
+EventDetailScreen
+• Hero image
+• Title, date, time, location
+• Info cards
+• Open roles
+• Confirmed crew
+• Chat preview
+• Description
+
+CandidateListScreen
+• Rank applicants and book
+
+ChatScreen
+• Real‑time messaging (Socket.io)
+
+ProfileScreen
+• Header
+• Stats
+• Portfolio
+• Skills
+• Reviews
+• Availability
+• Badges
+
+EventCreationFlow
+Step 1 Basic info
+Step 2 Theme (cover + accent)
+Step 3 Add roles
+Step 4 Publish
+
+DATABASE SCHEMA (PRISMA)
+Implement exactly the following models (copy unchanged):
+
+model User {
+id String @id @default(uuid())
+name String
+email String @unique
+password String
+rating Float?
+reliabilityScore Float?
+roles String[]
+skills String[]
+portfolio String[]
+avatar String?
+location String?
+events Event[] @relation("HostEvents")
+applications Application[]
+messages Message[]
+}
+
+model Event {
+id String @id @default(uuid())
+hostId String
+host User @relation("HostEvents", fields: [hostId], references: [id])
+title String
+date DateTime
+time String
+location String
+coverImage String?
+themeColor String?
+description String?
+roles Role[]
+}
+
+model Role {
+id String @id @default(uuid())
+eventId String
+event Event @relation(fields: [eventId], references: [id])
+roleType String
+pay Int?
+shiftStart String?
+shiftEnd String?
+slots Int
+applications Application[]
+}
+
+model Application {
+id String @id @default(uuid())
+userId String
+roleId String
+status String
+note String?
+timestamp DateTime @default(now())
+user User @relation(fields: [userId], references: [id])
+role Role @relation(fields: [roleId], references: [id])
+}
+
+model Message {
+id String @id @default(uuid())
+chatId String
+senderId String
+text String?
+imageUrl String?
+timestamp DateTime @default(now())
+sender User @relation(fields: [senderId], references: [id])
+}
+
+BACKEND API ENDPOINTS
+Auth: POST /auth/register, POST /auth/login
+Users: GET/PUT /users/:id, GET/PUT /users/:id/portfolio
+Events: POST/GET/PUT/DELETE /events, GET /events?nearby
+Roles: POST /events/:id/roles, GET /events/:id/roles
+Applications: POST /roles/:id/apply, GET /roles/:id/applications, PUT /applications/:id/status
+Chat: GET/POST /events/:id/messages
+Socket.io: event:
+
+REAL‑TIME FEATURES (Socket.io)
+• Event chat
+• New applications
+• Bookings
+• Host announcements
+• Crew check‑ins
+• Live arrival statuses
+
+RELIABILITY SCORE
+Implement formula:
+
+𝑅
+=
+(
+0.25
+⋅
+𝑂
+𝑛
+𝑇
+𝑖
+𝑚
+𝑒
+)
++
+(
+0.25
+⋅
+𝐶
+𝑜
+𝑚
+𝑝
+𝑙
+𝑒
+𝑡
+𝑖
+𝑜
+𝑛
+)
++
+(
+0.25
+⋅
+𝑅
+𝑎
+𝑡
+𝑖
+𝑛
+𝑔
+)
++
+(
+0.15
+⋅
+𝑅
+𝑒
+𝑠
+𝑝
+𝑜
+𝑛
+𝑠
+𝑒
+𝑆
+𝑝
+𝑒
+𝑒
+𝑑
+)
++
+(
+0.10
+⋅
+𝑅
+𝑒
+𝑝
+𝑒
+𝑎
+𝑡
+𝐵
+𝑜
+𝑜
+𝑘
+𝑖
+𝑛
+𝑔
+𝑠
+)
+R=(0.25⋅OnTime)+(0.25⋅Completion)+(0.25⋅Rating)+(0.15⋅ResponseSpeed)+(0.10⋅RepeatBookings)
+Display as:
+Reliability 4.8, 98 percent on time, 17 gigs
+
+ONBOARDING
+• Select purpose (Find gigs / Hire crew)
+• Select roles
+• Add profile photo
+• Set location
+
+FINAL OUTPUT REQUIREMENTS
+Replit AI must generate:
+• Full React Native Expo app
+• All screens and components
+• Theme + component library
+• Node.js backend
+• Prisma schema + migrations
+• Global store (Zustand or Redux)
+• API routes
+• Socket.io integration
+• Authentication
+• Candidate review flow
+• Event creation flow
+• Real‑time chat
+• Reliability calculation
+• Dummy seed data
+• Instructions to run frontend + backend
+
+CODING STANDARDS
+• Functional components
+• TypeScript everywhere
+• No inline styles unless necessary
+• Use theme colors only
+• 8px spacing grid
+• Use reusable components
+• Use hooks for data fetching
+• Use axios or fetch
+• No placeholder UI
+
+FINAL INSTRUCTION
+Generate the complete CrewCast codebase exactly as specified above.
