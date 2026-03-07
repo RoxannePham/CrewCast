@@ -26,9 +26,11 @@ export function getPaymentMethodIcon(type: string): string {
 export function getPaymentStatusLabel(status: string): string {
   const labels: Record<string, string> = {
     draft: 'Draft',
-    pending: 'Pending',
+    pending: 'Authorizing',
     processing: 'Processing',
-    completed: 'Completed',
+    held: 'Funds Secured',
+    pending_release: 'Releasing',
+    completed: 'Released',
     failed: 'Failed',
   };
   return labels[status] || status;
@@ -37,6 +39,7 @@ export function getPaymentStatusLabel(status: string): string {
 export function getPayoutStatusLabel(status: string): string {
   const labels: Record<string, string> = {
     not_started: 'Not Started',
+    on_hold: 'Held Pending',
     scheduled: 'Payout Scheduled',
     paid: 'Paid Out',
   };

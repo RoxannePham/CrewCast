@@ -76,17 +76,26 @@ app/
 - accentBlue: `#B9D9FF`
 - Card radius: 22px, Inter font (400/500/600/700)
 
-### Payment System
+### Payment System (Escrow / Hold Flow)
 - **2% platform fee**: `calculatePayment(total)` in `lib/paymentHelpers.ts`
-- **PaymentContext** (`context/PaymentContext.tsx`): createPayment, processPayment (simulates pending→processing→completed), getters by event/worker/host/application
-- **PaymentSheet** (`components/PaymentSheet.tsx`): Modal with fee breakdown, method selector, processing→success animation
-- **PaymentReceipt** (`components/PaymentReceipt.tsx`): Compact + full receipt, `PaymentStatusBadge` component
-- **Mock data** (`data/mockPayments.ts`): Payment/PaymentMethod types, 3 mock methods, pre-seeded payments
+- **Escrow flow**: Host authorizes payment → funds held → host confirms service → funds released to worker
+- **PaymentContext** (`context/PaymentContext.tsx`): createPayment, authorizeAndHoldPayment (draft→pending→processing→held), releasePayment (pending_release→completed), getters by event/worker/host/application
+- **Payment statuses**: draft, pending, processing, held, pending_release, completed, failed
+- **Payout statuses**: not_started, on_hold, scheduled, paid
+- **PaymentSheet** (`components/PaymentSheet.tsx`): "Authorize & Hold" CTA, escrow info notice, "Funds Secured" success state
+- **PaymentReceipt** (`components/PaymentReceipt.tsx`): Escrow-aware labels, hold info card, `PaymentStatusBadge` component
+- **Mock data** (`data/mockPayments.ts`): Payment types with `heldAt` timestamp, pre-seeded demo payments (1 completed, 1 held)
 - **Integration points**:
-  - `candidate/[id].tsx`: Book→"Pay Worker"→"Paid" CTA progression with PaymentSheet
-  - `profile.tsx`: My Applications show payment badges; Payments section shows worker earnings
+  - `candidate/[id].tsx`: Book → "Pay Worker" → "Held" + "Release Payment" → "Released" CTA progression
+  - `profile.tsx`: My Applications show escrow-aware badges (Funds Secured / Payment Released); Payments section shows worker earnings
   - `event/[id].tsx`: Crew tab shows payment status per crew member + payment history section
 - Provider order: PaymentProvider sits after AppProvider in `_layout.tsx`
+
+### Organization Avatars
+- `OrgAvatar` component uses category-based Ionicons (not initials)
+- Category → icon mapping: Tech=hardware-chip, Cultural=globe, Identity=heart, Arts=color-palette, Sports=football, Academic=school, Pre-Professional=briefcase, Student Government=flag
+- Category → color mapping uses theme accent colors
+- Fallback icon: business-outline with lavender color
 
 ### Key Data Files
 - `data/mockUsers.ts` — WorkerProfile/HostProfile with portraits
@@ -97,7 +106,7 @@ app/
 
 ### Components
 - `Avatar` — supports `imageSource`, `imageUri`, `imageUrl` with fallback to initials on error
-- `OrgAvatar` — organization-specific avatar with category-colored initials fallback
+- `OrgAvatar` — organization avatar with category-based Ionicons (no initials)
 - Organization data model supports optional `imageUrl` field
 
 ### Important Patterns

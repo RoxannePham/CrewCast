@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Image } from 'expo-image';
-import { colors, typography } from '@/constants/theme';
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { colors } from '@/constants/theme';
 
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0][0]?.toUpperCase() || '?';
-  return (parts[0][0] + parts[1][0]).toUpperCase();
-}
+const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+  Tech: 'hardware-chip-outline',
+  Cultural: 'globe-outline',
+  Identity: 'heart-outline',
+  Arts: 'color-palette-outline',
+  Sports: 'football-outline',
+  Academic: 'school-outline',
+  'Pre-Professional': 'briefcase-outline',
+  'Student Government': 'flag-outline',
+};
 
 const CATEGORY_COLORS: Record<string, string> = {
   Tech: colors.accentBlue,
@@ -20,6 +25,8 @@ const CATEGORY_COLORS: Record<string, string> = {
   'Student Government': colors.accentLavender,
 };
 
+const FALLBACK_ICON: keyof typeof Ionicons.glyphMap = 'business-outline';
+
 interface OrgAvatarProps {
   name: string;
   imageUrl?: string;
@@ -27,36 +34,21 @@ interface OrgAvatarProps {
   size?: number;
 }
 
-export function OrgAvatar({ name, imageUrl, category, size = 48 }: OrgAvatarProps) {
-  const [imgFailed, setImgFailed] = useState(false);
-  const initials = getInitials(name);
-  const fontSize = size * 0.34;
+export function OrgAvatar({ category, size = 48 }: OrgAvatarProps) {
   const bgColor = (category && CATEGORY_COLORS[category]) || colors.accentLavender;
-
-  if (imageUrl && !imgFailed) {
-    return (
-      <Image
-        source={{ uri: imageUrl }}
-        style={{ width: size, height: size, borderRadius: size / 2 }}
-        contentFit="cover"
-        onError={() => setImgFailed(true)}
-      />
-    );
-  }
+  const iconName = (category && CATEGORY_ICONS[category]) || FALLBACK_ICON;
+  const iconSize = size * 0.45;
 
   return (
-    <View style={[styles.fallback, { width: size, height: size, borderRadius: size / 2, backgroundColor: bgColor + '25' }]}>
-      <Text style={[styles.initials, { fontSize, color: bgColor }]}>{initials}</Text>
+    <View style={[styles.container, { width: size, height: size, borderRadius: size / 2, backgroundColor: bgColor + '25' }]}>
+      <Ionicons name={iconName} size={iconSize} color={bgColor} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  fallback: {
+  container: {
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  initials: {
-    fontFamily: 'Inter_700Bold',
   },
 });

@@ -211,12 +211,17 @@ export default function ProfileScreen() {
                     {(() => {
                       const appPayment = getPaymentForApplication(app.id);
                       if (!appPayment) return null;
-                      const isPaid = appPayment.paymentStatus === 'completed';
+                      const isReleased = appPayment.paymentStatus === 'completed';
+                      const isHeld = appPayment.paymentStatus === 'held';
+                      const badgeBg = isReleased ? '#1A663520' : colors.accentBlue + '20';
+                      const badgeColor = isReleased ? '#1A6635' : '#1A4D80';
+                      const badgeIcon: keyof typeof Ionicons.glyphMap = isReleased ? 'checkmark-circle' : isHeld ? 'lock-closed' : 'time-outline';
+                      const badgeLabel = isReleased ? 'Payment Released' : isHeld ? 'Funds Secured' : 'Payment Pending';
                       return (
-                        <View style={[styles.appResumeBadge, { backgroundColor: isPaid ? '#1A663520' : colors.accentBlue + '20' }]}>
-                          <Ionicons name={isPaid ? 'checkmark-circle' : 'time-outline'} size={10} color={isPaid ? '#1A6635' : '#1A4D80'} />
-                          <Text style={[styles.appResumeText, { color: isPaid ? '#1A6635' : '#1A4D80' }]}>
-                            {isPaid ? 'Paid' : 'Payment Pending'}
+                        <View style={[styles.appResumeBadge, { backgroundColor: badgeBg }]}>
+                          <Ionicons name={badgeIcon} size={10} color={badgeColor} />
+                          <Text style={[styles.appResumeText, { color: badgeColor }]}>
+                            {badgeLabel}
                           </Text>
                         </View>
                       );
@@ -249,7 +254,7 @@ export default function ProfileScreen() {
             ))}
             <View style={styles.paymentsTrust}>
               <Ionicons name="shield-checkmark-outline" size={14} color={colors.textMuted} />
-              <Text style={styles.paymentsTrustText}>Booking and payment details stored in-app</Text>
+              <Text style={styles.paymentsTrustText}>Protected payments through CrewCast</Text>
             </View>
           </View>
         );

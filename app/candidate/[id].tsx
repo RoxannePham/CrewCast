@@ -36,13 +36,14 @@ export default function CandidateDetailScreen() {
   const { bookWorker, bookedWorkers, getApplicationsByWorker, getEventById } = useApp();
   const { user } = useAuth();
   const {
-    createPayment, processPayment, getPaymentForApplication,
+    createPayment, authorizeAndHoldPayment, releasePayment, getPaymentForApplication,
     paymentMethods, selectedPaymentMethod, setSelectedPaymentMethod,
   } = usePayments();
   const [activeTab, setActiveTab] = useState<'profile' | 'reviews' | 'stats'>('profile');
   const [booked, setBooked] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
+  const [releasing, setReleasing] = useState(false);
 
   const isHost = user?.type === 'host';
 
@@ -65,7 +66,8 @@ export default function CandidateDetailScreen() {
 
   const bookedApp = workerApps.find(a => a.status === 'booked' || a.status === 'accepted');
   const existingPayment = bookedApp ? getPaymentForApplication(bookedApp.id) : undefined;
-  const paymentCompleted = existingPayment?.paymentStatus === 'completed';
+  const paymentHeld = existingPayment?.paymentStatus === 'held';
+  const paymentReleased = existingPayment?.paymentStatus === 'completed';
 
   const paymentEvent = bookedApp ? getEventById(bookedApp.eventId) : undefined;
   const paymentRole = paymentEvent?.roles.find(r => r.id === bookedApp?.roleId);
@@ -93,7 +95,16 @@ export default function CandidateDetailScreen() {
       paymentMethod: selectedPaymentMethod,
     });
 
-    await processPayment(payment.id);
+    await authorizeAndHoldPayment(payment.id);
+  };
+
+  const handleReleasePayment = async () => {
+    if (!existingPayment) return;
+    setReleasing(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await releasePayment(existingPayment.id);
+    setReleasing(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
   return (
@@ -352,16 +363,36 @@ export default function CandidateDetailScreen() {
               <Text style={styles.bookBtnText}>Book {worker.name.split(' ')[0]}</Text>
             </LinearGradient>
           </Pressable>
-        ) : paymentCompleted ? (
+        ) : paymentReleased ? (
           <Pressable
             onPress={() => setShowReceipt(s => !s)}
             style={({ pressed }) => [styles.bookBtn, { transform: [{ scale: pressed ? 0.96 : 1 }] }]}
           >
             <View style={[styles.bookBtnGrad, { backgroundColor: colors.accentMint + '60' }]}>
               <Ionicons name="checkmark-circle" size={18} color="#1A6635" />
-              <Text style={[styles.bookBtnText, { color: '#1A6635' }]}>Paid</Text>
+              <Text style={[styles.bookBtnText, { color: '#1A6635' }]}>Released</Text>
             </View>
           </Pressable>
+        ) : paymentHeld ? (
+          <View style={styles.heldCtaRow}>
+            <Pressable
+              onPress={() => setShowReceipt(s => !s)}
+              style={({ pressed }) => [styles.heldViewBtn, { transform: [{ scale: pressed ? 0.96 : 1 }] }]}
+            >
+              <Ionicons name="lock-closed" size={14} color="#1A4D80" />
+              <Text style={styles.heldViewText}>Held</Text>
+            </Pressable>
+            <Pressable
+              onPress={handleReleasePayment}
+              disabled={releasing}
+              style={({ pressed }) => [styles.bookBtn, { flex: 1, opacity: releasing ? 0.6 : 1, transform: [{ scale: pressed ? 0.96 : 1 }] }]}
+            >
+              <LinearGradient colors={['#5CB85C', '#3D8B3D']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.bookBtnGrad}>
+                <Ionicons name="shield-checkmark" size={16} color="#fff" />
+                <Text style={styles.bookBtnText}>{releasing ? 'Releasing...' : 'Release Payment'}</Text>
+              </LinearGradient>
+            </Pressable>
+          </View>
         ) : (
           <Pressable
             onPress={handlePayWorker}
@@ -451,6 +482,9 @@ const styles = StyleSheet.create({
   bookBtn: { overflow: 'hidden', borderRadius: radius.button },
   bookBtnGrad: { paddingVertical: 12, paddingHorizontal: spacing.lg, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: radius.button },
   bookBtnText: { fontSize: 15, fontFamily: 'Inter_700Bold', color: '#fff' },
+  heldCtaRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  heldViewBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.accentBlue + '20', borderRadius: radius.button, paddingVertical: 12, paddingHorizontal: 14 },
+  heldViewText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: '#1A4D80' },
   appRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.borderSubtle },
   appRowLeft: { flex: 1, flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   statusDot: { width: 8, height: 8, borderRadius: 4, marginTop: 5 },

@@ -1,5 +1,5 @@
-export type PaymentStatus = 'draft' | 'pending' | 'processing' | 'completed' | 'failed';
-export type PayoutStatus = 'not_started' | 'scheduled' | 'paid';
+export type PaymentStatus = 'draft' | 'pending' | 'processing' | 'held' | 'pending_release' | 'completed' | 'failed';
+export type PayoutStatus = 'not_started' | 'on_hold' | 'scheduled' | 'paid';
 
 export interface PaymentMethod {
   id: string;
@@ -25,6 +25,7 @@ export interface Payment {
   payoutStatus: PayoutStatus;
   paymentMethod: PaymentMethod;
   createdAt: number;
+  heldAt: number | null;
   completedAt: number | null;
   notes: string;
 }
@@ -53,6 +54,7 @@ export const mockPayments: Payment[] = [
     payoutStatus: 'paid',
     paymentMethod: MOCK_PAYMENT_METHODS[0],
     createdAt: Date.now() - 172800000,
+    heldAt: Date.now() - 172400000,
     completedAt: Date.now() - 172000000,
     notes: '',
   },
@@ -69,11 +71,12 @@ export const mockPayments: Payment[] = [
     platformFee: 3,
     workerPayout: 147,
     currency: 'USD',
-    paymentStatus: 'completed',
-    payoutStatus: 'scheduled',
+    paymentStatus: 'held',
+    payoutStatus: 'on_hold',
     paymentMethod: MOCK_PAYMENT_METHODS[1],
     createdAt: Date.now() - 86400000,
-    completedAt: Date.now() - 85000000,
+    heldAt: Date.now() - 85000000,
+    completedAt: null,
     notes: '',
   },
 ];

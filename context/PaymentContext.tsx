@@ -24,7 +24,8 @@ interface PaymentContextValue {
   selectedPaymentMethod: PaymentMethod;
   setSelectedPaymentMethod: (method: PaymentMethod) => void;
   createPayment: (params: CreatePaymentParams) => Payment;
-  processPayment: (paymentId: string) => Promise<Payment | null>;
+  authorizeAndHoldPayment: (paymentId: string) => Promise<Payment | null>;
+  releasePayment: (paymentId: string) => Promise<Payment | null>;
   getPaymentsByEvent: (eventId: string) => Payment[];
   getPaymentsByWorker: (workerId: string) => Payment[];
   getPaymentsByHost: (hostId: string) => Payment[];
@@ -56,6 +57,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
       payoutStatus: 'not_started',
       paymentMethod: params.paymentMethod,
       createdAt: Date.now(),
+      heldAt: null,
       completedAt: null,
       notes: params.notes || '',
     };
@@ -63,7 +65,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
     return payment;
   }, []);
 
-  const processPayment = useCallback(async (paymentId: string): Promise<Payment | null> => {
+  const authorizeAndHoldPayment = useCallback(async (paymentId: string): Promise<Payment | null> => {
     setPayments(prev =>
       prev.map(p => p.id === paymentId ? { ...p, paymentStatus: 'pending' as PaymentStatus } : p)
     );
@@ -76,7 +78,34 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
 
     await new Promise(resolve => setTimeout(resolve, 1200));
 
-    let completedPayment: Payment | null = null;
+    let heldPayment: Payment | null = null;
+    setPayments(prev =>
+      prev.map(p => {
+        if (p.id === paymentId) {
+          const updated: Payment = {
+            ...p,
+            paymentStatus: 'held',
+            payoutStatus: 'on_hold',
+            heldAt: Date.now(),
+          };
+          heldPayment = updated;
+          return updated;
+        }
+        return p;
+      })
+    );
+
+    return heldPayment;
+  }, []);
+
+  const releasePayment = useCallback(async (paymentId: string): Promise<Payment | null> => {
+    setPayments(prev =>
+      prev.map(p => p.id === paymentId ? { ...p, paymentStatus: 'pending_release' as PaymentStatus } : p)
+    );
+
+    await new Promise(resolve => setTimeout(resolve, 600));
+
+    let releasedPayment: Payment | null = null;
     setPayments(prev =>
       prev.map(p => {
         if (p.id === paymentId) {
@@ -86,14 +115,14 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
             payoutStatus: 'scheduled',
             completedAt: Date.now(),
           };
-          completedPayment = updated;
+          releasedPayment = updated;
           return updated;
         }
         return p;
       })
     );
 
-    return completedPayment;
+    return releasedPayment;
   }, []);
 
   const getPaymentsByEvent = useCallback((eventId: string) =>
@@ -114,12 +143,13 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
     selectedPaymentMethod,
     setSelectedPaymentMethod,
     createPayment,
-    processPayment,
+    authorizeAndHoldPayment,
+    releasePayment,
     getPaymentsByEvent,
     getPaymentsByWorker,
     getPaymentsByHost,
     getPaymentForApplication,
-  }), [payments, selectedPaymentMethod, createPayment, processPayment, getPaymentsByEvent, getPaymentsByWorker, getPaymentsByHost, getPaymentForApplication]);
+  }), [payments, selectedPaymentMethod, createPayment, authorizeAndHoldPayment, releasePayment, getPaymentsByEvent, getPaymentsByWorker, getPaymentsByHost, getPaymentForApplication]);
 
   return <PaymentContext.Provider value={value}>{children}</PaymentContext.Provider>;
 }

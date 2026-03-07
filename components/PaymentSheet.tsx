@@ -65,7 +65,7 @@ export function PaymentSheet({
             <>
               <View style={styles.header}>
                 <Ionicons name="shield-checkmark-outline" size={24} color={colors.accentPrimary} />
-                <Text style={styles.sheetTitle}>Review Payment</Text>
+                <Text style={styles.sheetTitle}>Authorize Payment</Text>
               </View>
 
               <View style={styles.jobInfo}>
@@ -85,7 +85,7 @@ export function PaymentSheet({
 
               <View style={styles.breakdown}>
                 <View style={styles.breakdownRow}>
-                  <Text style={styles.breakdownLabel}>Job Total</Text>
+                  <Text style={styles.breakdownLabel}>Total Charged</Text>
                   <Text style={styles.breakdownTotal}>{formatCurrency(total)}</Text>
                 </View>
                 <View style={styles.breakdownRow}>
@@ -94,9 +94,16 @@ export function PaymentSheet({
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.breakdownRow}>
-                  <Text style={styles.payoutLabel}>Worker Receives</Text>
+                  <Text style={styles.payoutLabel}>Worker Receives (after release)</Text>
                   <Text style={styles.payoutAmount}>{formatCurrency(workerPayout)}</Text>
                 </View>
+              </View>
+
+              <View style={styles.holdNotice}>
+                <Ionicons name="lock-closed" size={16} color="#1A4D80" />
+                <Text style={styles.holdNoticeText}>
+                  Funds will be held securely until you confirm the service is completed. The worker will be paid once you release the payment.
+                </Text>
               </View>
 
               <View style={styles.methodSection}>
@@ -130,7 +137,7 @@ export function PaymentSheet({
 
               <View style={styles.trustRow}>
                 <Ionicons name="lock-closed-outline" size={14} color={colors.textMuted} />
-                <Text style={styles.trustText}>Processed securely through CrewCast</Text>
+                <Text style={styles.trustText}>Protected payment through CrewCast</Text>
               </View>
 
               <Pressable
@@ -144,7 +151,7 @@ export function PaymentSheet({
                   style={styles.confirmBtnGrad}
                 >
                   <Ionicons name="shield-checkmark" size={18} color="#fff" />
-                  <Text style={styles.confirmBtnText}>Confirm Payment &middot; {formatCurrency(total)}</Text>
+                  <Text style={styles.confirmBtnText}>Authorize & Hold {formatCurrency(total)}</Text>
                 </LinearGradient>
               </Pressable>
 
@@ -157,11 +164,11 @@ export function PaymentSheet({
           {step === 'processing' && (
             <View style={styles.processingView}>
               <ActivityIndicator size="large" color={colors.accentPrimary} />
-              <Text style={styles.processingTitle}>Processing Payment...</Text>
-              <Text style={styles.processingSubtext}>Please wait while we securely process your payment</Text>
+              <Text style={styles.processingTitle}>Authorizing Payment...</Text>
+              <Text style={styles.processingSubtext}>Securely verifying and holding your funds</Text>
               <View style={styles.processingBreakdown}>
                 <Text style={styles.processingAmount}>{formatCurrency(total)}</Text>
-                <Text style={styles.processingTo}>to {workerName}</Text>
+                <Text style={styles.processingTo}>for {workerName}</Text>
               </View>
             </View>
           )}
@@ -169,15 +176,23 @@ export function PaymentSheet({
           {step === 'success' && (
             <View style={styles.successView}>
               <View style={styles.successCircle}>
-                <Ionicons name="checkmark" size={36} color="#fff" />
+                <Ionicons name="lock-closed" size={30} color="#fff" />
               </View>
-              <Text style={styles.successTitle}>Payment Completed</Text>
+              <Text style={styles.successTitle}>Funds Secured</Text>
               <Text style={styles.successSubtext}>
-                {formatCurrency(total)} sent to {workerName}
+                {formatCurrency(total)} authorized and held for {workerName}
               </Text>
+
+              <View style={styles.holdInfoCard}>
+                <Ionicons name="information-circle-outline" size={18} color="#1A4D80" />
+                <Text style={styles.holdInfoText}>
+                  Payment will be released to the worker once you confirm the service is completed.
+                </Text>
+              </View>
+
               <View style={styles.successDetails}>
                 <View style={styles.successRow}>
-                  <Text style={styles.successLabel}>Worker Payout</Text>
+                  <Text style={styles.successLabel}>Worker Payout (after release)</Text>
                   <Text style={styles.successValue}>{formatCurrency(workerPayout)}</Text>
                 </View>
                 <View style={styles.successRow}>
@@ -188,10 +203,17 @@ export function PaymentSheet({
                   <Text style={styles.successLabel}>Payment Method</Text>
                   <Text style={styles.successValue}>{selectedMethod.label}</Text>
                 </View>
+                <View style={styles.successRow}>
+                  <Text style={styles.successLabel}>Status</Text>
+                  <View style={styles.heldBadge}>
+                    <Text style={styles.heldBadgeText}>Held Pending</Text>
+                  </View>
+                </View>
               </View>
+
               <View style={styles.trustRow}>
-                <Ionicons name="document-text-outline" size={14} color={colors.textMuted} />
-                <Text style={styles.trustText}>Payment record saved</Text>
+                <Ionicons name="shield-checkmark-outline" size={14} color={colors.textMuted} />
+                <Text style={styles.trustText}>Protected by CrewCast payment guarantee</Text>
               </View>
               <Pressable onPress={handleClose} style={[styles.doneBtn, shadow.card]}>
                 <Text style={styles.doneBtnText}>Done</Text>
@@ -226,7 +248,7 @@ const styles = StyleSheet.create({
   jobLabel: { ...typography.body, color: colors.textSecondary, fontFamily: 'Inter_400Regular' },
   breakdown: {
     backgroundColor: colors.surfaceCard, borderRadius: radius.card, padding: spacing.md,
-    gap: 10, marginBottom: spacing.md,
+    gap: 10, marginBottom: spacing.sm,
   },
   breakdownRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   breakdownLabel: { fontSize: 15, fontFamily: 'Inter_500Medium', color: colors.textSecondary },
@@ -234,8 +256,14 @@ const styles = StyleSheet.create({
   breakdownFeeLabel: { fontSize: 13, fontFamily: 'Inter_400Regular', color: colors.textMuted },
   breakdownFee: { fontSize: 13, fontFamily: 'Inter_500Medium', color: colors.textMuted },
   divider: { height: 1, backgroundColor: colors.borderSubtle },
-  payoutLabel: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: '#1A6635' },
+  payoutLabel: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: '#1A6635' },
   payoutAmount: { fontSize: 20, fontFamily: 'Inter_700Bold', color: '#1A6635' },
+  holdNotice: {
+    flexDirection: 'row', gap: 10, backgroundColor: colors.accentBlue + '15',
+    borderRadius: radius.card, padding: spacing.sm, marginBottom: spacing.md,
+    alignItems: 'flex-start',
+  },
+  holdNoticeText: { flex: 1, fontSize: 12, fontFamily: 'Inter_400Regular', color: '#1A4D80', lineHeight: 17 },
   methodSection: { gap: 8, marginBottom: spacing.md },
   methodTitle: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: colors.textSecondary },
   methodRow: {
@@ -275,10 +303,15 @@ const styles = StyleSheet.create({
   successView: { alignItems: 'center', paddingVertical: spacing.lg, gap: spacing.md },
   successCircle: {
     width: 72, height: 72, borderRadius: 36,
-    backgroundColor: '#1A6635', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#1A4D80', alignItems: 'center', justifyContent: 'center',
   },
   successTitle: { fontSize: 22, fontFamily: 'Inter_700Bold', color: colors.textPrimary },
-  successSubtext: { ...typography.body, color: colors.textMuted, fontFamily: 'Inter_400Regular' },
+  successSubtext: { ...typography.body, color: colors.textMuted, fontFamily: 'Inter_400Regular', textAlign: 'center' },
+  holdInfoCard: {
+    flexDirection: 'row', gap: 8, backgroundColor: colors.accentBlue + '15',
+    borderRadius: radius.card, padding: spacing.sm, width: '100%', alignItems: 'flex-start',
+  },
+  holdInfoText: { flex: 1, fontSize: 12, fontFamily: 'Inter_400Regular', color: '#1A4D80', lineHeight: 17 },
   successDetails: {
     width: '100%', backgroundColor: colors.surfaceCard,
     borderRadius: radius.card, padding: spacing.md, gap: 10,
@@ -287,6 +320,11 @@ const styles = StyleSheet.create({
   successLabel: { fontSize: 13, fontFamily: 'Inter_400Regular', color: colors.textMuted },
   successValue: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: colors.textPrimary },
   successFeeValue: { fontSize: 14, fontFamily: 'Inter_500Medium', color: colors.textMuted },
+  heldBadge: {
+    backgroundColor: colors.accentBlue + '25', borderRadius: 12,
+    paddingHorizontal: 10, paddingVertical: 3,
+  },
+  heldBadgeText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#1A4D80' },
   doneBtn: {
     width: '100%', backgroundColor: colors.surfaceCard,
     borderRadius: radius.button, paddingVertical: 14, alignItems: 'center',

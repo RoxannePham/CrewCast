@@ -273,7 +273,7 @@ export default function EventDetailScreen() {
                     {latestPayment && (
                       <View style={styles.crewPaymentBadge}>
                         <PaymentStatusBadge status={latestPayment.paymentStatus} type="payment" />
-                        {latestPayment.paymentStatus === 'completed' && (
+                        {(latestPayment.paymentStatus === 'completed' || latestPayment.paymentStatus === 'held') && (
                           <PaymentStatusBadge status={latestPayment.payoutStatus} type="payout" />
                         )}
                       </View>
@@ -298,7 +298,7 @@ export default function EventDetailScreen() {
                   ))}
                   <View style={styles.paymentTrust}>
                     <Ionicons name="shield-checkmark-outline" size={14} color={colors.textMuted} />
-                    <Text style={styles.paymentTrustText}>Keep payment on CrewCast for transparent job records</Text>
+                    <Text style={styles.paymentTrustText}>Protected payments through CrewCast</Text>
                   </View>
                 </>
               );

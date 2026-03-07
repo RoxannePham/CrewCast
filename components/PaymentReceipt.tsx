@@ -9,15 +9,32 @@ const PAYMENT_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   draft: { bg: colors.borderSubtle, text: colors.textMuted },
   pending: { bg: colors.accentPeach + '30', text: '#8B5A00' },
   processing: { bg: colors.accentBlue + '30', text: '#1A4D80' },
+  held: { bg: colors.accentBlue + '25', text: '#1A4D80' },
+  pending_release: { bg: colors.accentPeach + '30', text: '#8B5A00' },
   completed: { bg: colors.accentMint + '30', text: '#1A6635' },
   failed: { bg: colors.accentPrimary + '20', text: '#AA2244' },
 };
 
 const PAYOUT_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   not_started: { bg: colors.borderSubtle, text: colors.textMuted },
-  scheduled: { bg: colors.accentBlue + '30', text: '#1A4D80' },
+  on_hold: { bg: colors.accentBlue + '25', text: '#1A4D80' },
+  scheduled: { bg: colors.accentPeach + '30', text: '#8B5A00' },
   paid: { bg: colors.accentMint + '30', text: '#1A6635' },
 };
+
+function getPaymentIcon(status: string): keyof typeof Ionicons.glyphMap {
+  if (status === 'completed') return 'checkmark-circle';
+  if (status === 'held') return 'lock-closed';
+  if (status === 'pending_release') return 'lock-open-outline';
+  return 'time-outline';
+}
+
+function getReceiptTitle(status: string): string {
+  if (status === 'completed') return 'Payment Released';
+  if (status === 'held') return 'Funds Secured';
+  if (status === 'pending_release') return 'Releasing Funds';
+  return getPaymentStatusLabel(status);
+}
 
 interface PaymentReceiptProps {
   payment: Payment;
@@ -27,13 +44,15 @@ interface PaymentReceiptProps {
 export function PaymentReceipt({ payment, compact = false }: PaymentReceiptProps) {
   const payStatus = PAYMENT_STATUS_COLORS[payment.paymentStatus] || PAYMENT_STATUS_COLORS.draft;
   const payoutStatus = PAYOUT_STATUS_COLORS[payment.payoutStatus] || PAYOUT_STATUS_COLORS.not_started;
+  const isHeld = payment.paymentStatus === 'held';
+  const isCompleted = payment.paymentStatus === 'completed';
 
   if (compact) {
     return (
       <View style={[styles.compactCard, shadow.card]}>
         <View style={styles.compactHeader}>
           <Ionicons
-            name={payment.paymentStatus === 'completed' ? 'checkmark-circle' : 'time-outline'}
+            name={getPaymentIcon(payment.paymentStatus)}
             size={18}
             color={payStatus.text}
           />
@@ -50,7 +69,7 @@ export function PaymentReceipt({ payment, compact = false }: PaymentReceiptProps
                 {getPaymentStatusLabel(payment.paymentStatus)}
               </Text>
             </View>
-            {payment.paymentStatus === 'completed' && (
+            {(isCompleted || isHeld) && (
               <View style={[styles.statusBadge, { backgroundColor: payoutStatus.bg }]}>
                 <Text style={[styles.statusBadgeText, { color: payoutStatus.text }]}>
                   {getPayoutStatusLabel(payment.payoutStatus)}
@@ -66,17 +85,28 @@ export function PaymentReceipt({ payment, compact = false }: PaymentReceiptProps
   return (
     <View style={[styles.receiptCard, shadow.card]}>
       <View style={styles.receiptHeader}>
-        {payment.paymentStatus === 'completed' ? (
+        {isCompleted ? (
           <View style={styles.checkCircle}>
             <Ionicons name="checkmark" size={20} color="#fff" />
+          </View>
+        ) : isHeld ? (
+          <View style={[styles.checkCircle, { backgroundColor: '#1A4D80' }]}>
+            <Ionicons name="lock-closed" size={20} color="#fff" />
           </View>
         ) : (
           <Ionicons name="time-outline" size={28} color={payStatus.text} />
         )}
-        <Text style={styles.receiptTitle}>
-          {payment.paymentStatus === 'completed' ? 'Payment Completed' : getPaymentStatusLabel(payment.paymentStatus)}
-        </Text>
+        <Text style={styles.receiptTitle}>{getReceiptTitle(payment.paymentStatus)}</Text>
       </View>
+
+      {isHeld && (
+        <View style={styles.holdInfoCard}>
+          <Ionicons name="information-circle-outline" size={16} color="#1A4D80" />
+          <Text style={styles.holdInfoText}>
+            Funds are held securely. Payment will be released to the worker after service completion is confirmed.
+          </Text>
+        </View>
+      )}
 
       <View style={styles.receiptDetails}>
         <View style={styles.receiptRow}>
@@ -93,7 +123,7 @@ export function PaymentReceipt({ payment, compact = false }: PaymentReceiptProps
         </View>
         <View style={styles.divider} />
         <View style={styles.receiptRow}>
-          <Text style={styles.receiptLabel}>Total Paid</Text>
+          <Text style={styles.receiptLabel}>Total Authorized</Text>
           <Text style={styles.receiptAmount}>{formatCurrency(payment.amountTotal)}</Text>
         </View>
         <View style={styles.receiptRow}>
@@ -101,7 +131,7 @@ export function PaymentReceipt({ payment, compact = false }: PaymentReceiptProps
           <Text style={styles.receiptFee}>-{formatCurrency(payment.platformFee)}</Text>
         </View>
         <View style={styles.receiptRow}>
-          <Text style={styles.receiptPayoutLabel}>Worker Receives</Text>
+          <Text style={styles.receiptPayoutLabel}>Worker Receives{isHeld ? ' (after release)' : ''}</Text>
           <Text style={styles.receiptPayout}>{formatCurrency(payment.workerPayout)}</Text>
         </View>
         <View style={styles.divider} />
@@ -109,9 +139,20 @@ export function PaymentReceipt({ payment, compact = false }: PaymentReceiptProps
           <Text style={styles.receiptLabel}>Payment Method</Text>
           <Text style={styles.receiptValue}>{payment.paymentMethod.label}</Text>
         </View>
+        {payment.heldAt && (
+          <View style={styles.receiptRow}>
+            <Text style={styles.receiptLabel}>Authorized</Text>
+            <Text style={styles.receiptValue}>
+              {new Date(payment.heldAt).toLocaleDateString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric',
+                hour: 'numeric', minute: '2-digit',
+              })}
+            </Text>
+          </View>
+        )}
         {payment.completedAt && (
           <View style={styles.receiptRow}>
-            <Text style={styles.receiptLabel}>Completed</Text>
+            <Text style={styles.receiptLabel}>Released</Text>
             <Text style={styles.receiptValue}>
               {new Date(payment.completedAt).toLocaleDateString('en-US', {
                 month: 'short', day: 'numeric', year: 'numeric',
@@ -136,8 +177,8 @@ export function PaymentReceipt({ payment, compact = false }: PaymentReceiptProps
       </View>
 
       <View style={styles.trustRow}>
-        <Ionicons name="document-text-outline" size={14} color={colors.textMuted} />
-        <Text style={styles.trustText}>Payment record saved</Text>
+        <Ionicons name="shield-checkmark-outline" size={14} color={colors.textMuted} />
+        <Text style={styles.trustText}>Protected by CrewCast payment guarantee</Text>
       </View>
     </View>
   );
@@ -180,6 +221,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A6635', alignItems: 'center', justifyContent: 'center',
   },
   receiptTitle: { fontSize: 18, fontFamily: 'Inter_700Bold', color: colors.textPrimary },
+  holdInfoCard: {
+    flexDirection: 'row', gap: 8, backgroundColor: colors.accentBlue + '15',
+    borderRadius: radius.card, padding: spacing.sm, alignItems: 'flex-start',
+  },
+  holdInfoText: { flex: 1, fontSize: 12, fontFamily: 'Inter_400Regular', color: '#1A4D80', lineHeight: 17 },
   receiptDetails: { gap: 8 },
   receiptRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   receiptLabel: { fontSize: 13, fontFamily: 'Inter_400Regular', color: colors.textMuted },

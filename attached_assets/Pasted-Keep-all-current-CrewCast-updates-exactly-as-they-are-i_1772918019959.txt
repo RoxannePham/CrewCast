@@ -1,0 +1,165 @@
+Keep all current CrewCast updates exactly as they are, including:
+- My Applications showing real event names instead of raw IDs
+- login validation rejecting nonexistent users / wrong passwords
+- profile photo upload for users
+- all current UX polish and state logic
+- the existing mock payment UI structure
+
+Do NOT undo any of the working updates.
+
+I need you to make two specific changes:
+
+==================================================
+1. FIX ORGANIZATION / CLUB AVATARS
+==================================================
+
+Problem:
+Organization and club cards are still showing initials in the avatar circle instead of category-based icons.
+
+What I want:
+- remove the initials-based avatar fallback for organizations/clubs
+- organizations should NOT show text initials like “RU”, “RA”, etc.
+- organizations should use category-based icons only
+- do NOT use pulled/public org images
+- do NOT depend on imageUrl for org visual display
+- keep organization cards, detail pages, search, routing, and layout intact
+
+Implementation requirements:
+- update the shared org avatar component so that it always renders an icon based on category
+- centralize the category → icon mapping inside the avatar component or a shared helper
+- centralize the category → accent/background color mapping as well
+- if a category is unknown, use a neutral fallback icon such as business-outline
+
+Use these mappings:
+
+Category to icon:
+- Tech → hardware-chip-outline
+- Cultural → globe-outline
+- Identity → heart-outline
+- Arts → color-palette-outline
+- Sports → football-outline
+- Academic → school-outline
+- Pre-Professional → briefcase-outline
+- Student Government → flag-outline
+- fallback/default → business-outline
+
+Behavior:
+- organization list cards should show the category icon
+- organization detail headers should show the category icon
+- any place using org avatars should show icon-based avatars, not initials
+- keep the size, spacing, and general design aesthetic consistent with the current app
+
+Important:
+- remove the current initials rendering logic from org avatars
+- if there is old fallback logic using the org name to compute initials, delete it for organizations/clubs
+- keep the rest of the organizations feature intact
+
+==================================================
+2. CHANGE PAYMENTS TO HOLD / PENDING ESCROW-LIKE FLOW
+==================================================
+
+Problem:
+The payment flow should not look like instant payout. We want it to feel like a real protected marketplace transaction where the client/host pays first, but the money is held pending until the work is completed and confirmed.
+
+Goal:
+Make the payment system behave like a mock escrow / hold flow.
+
+Desired product behavior:
+- the host can submit payment for the worker
+- once host pays, the payment should NOT immediately become fully completed
+- payment should go into a held / pending state
+- the UI should clearly explain that funds are being held securely
+- funds are only released after the service is completed and confirmed / delivered
+- once confirmed, the payment changes to released / completed and the worker payout becomes paid or scheduled
+- since this is still a mock, keep it simulated in frontend/app state only, but make the UX feel real
+
+Required payment flow:
+1. Host selects worker and presses Pay Worker
+2. Payment sheet opens
+3. Host reviews:
+   - event
+   - worker
+   - organization
+   - amount
+   - platform fee
+   - worker payout
+   - payment method
+4. Host presses a CTA like:
+   - “Authorize & Hold Payment”
+   instead of a normal instant “Pay Now”
+5. Payment enters a held state:
+   - payment status: held or pending_release
+   - payout status: not_released
+6. Receipt / confirmation screen explains:
+   - payment authorized
+   - funds are being held securely
+   - payout will be released after service completion is confirmed
+7. Later in the flow, add a mock host action such as:
+   - “Confirm Service Received”
+   or
+   - “Release Payment”
+8. Once host confirms service completion:
+   - payment status changes to completed / released
+   - payout status changes to scheduled or paid
+   - receipt/history updates accordingly
+
+Implementation requirements:
+- update the payment context/state model to support a hold flow
+- add or revise statuses to include something like:
+  Payment statuses:
+  - draft
+  - processing
+  - held
+  - pending_release
+  - completed
+  - failed
+  Payout statuses:
+  - not_started
+  - on_hold
+  - scheduled
+  - paid
+- do NOT leave the UX implying that workers are paid instantly upon authorization
+- update all labels, helper text, button text, and receipts to match the new held-payment logic
+- keep the payment system mock / demo-friendly, but make it much more believable
+- do not integrate real Stripe yet unless the project already has mock wrappers for it
+- keep everything frontend-safe and consistent with current architecture
+
+UI copy guidelines:
+Use trust-building, marketplace-style language such as:
+- “Payment authorized”
+- “Funds secured”
+- “Held pending service confirmation”
+- “Payment will be released once the service is completed and confirmed”
+- “Protected payment”
+- “Release payment”
+
+Update these areas if they exist:
+- PaymentSheet
+- PaymentReceipt
+- PaymentContext
+- any payment helpers / mock payment data
+- payment history / status chips / summary cards
+- any host-side worker payment buttons and flows
+
+Important UX requirements:
+- the payment sheet should clearly separate:
+  - total charged to host
+  - platform/service fee
+  - worker payout after release
+- the confirmation screen should not say “worker paid” immediately after authorization
+- if there is a fake processing animation, it should end in “Payment held” or “Funds secured” rather than “Payment completed”
+- add a later release step that changes the state to completed
+- keep the current clean premium look and feel
+
+==================================================
+3. DELIVERABLE EXPECTATIONS
+==================================================
+
+Please implement the changes directly in the codebase and keep the app functional.
+
+When done:
+- summarize exactly which files you changed
+- explain how the org avatar fix works now
+- explain the new payment hold / release flow
+- mention any new status fields, helper functions, or UI states added
+- do not remove any unrelated working features
