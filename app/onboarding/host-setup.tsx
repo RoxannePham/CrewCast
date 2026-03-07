@@ -12,11 +12,11 @@ import { colors, typography, spacing, radius, shadow } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 
 const EVENT_TYPES = ['Greek Life', 'Campus Party', 'Networking', 'Brand Launch', 'Concert', 'Rave', 'Cultural Event', 'Charity', 'Corporate', 'Fashion Show'];
-const ORG_ROLES = ['Social Chair', 'Event Organizer', 'Promoter', 'Brand Manager', 'Manager', 'Director'];
+const ORG_ROLES = ['Social Chair', 'Event Organizer', 'Promoter', 'Brand Manager', 'Manager', 'Director', 'President', 'VP Events'];
 
 export default function HostSetupScreen() {
   const insets = useSafeAreaInsets();
-  const { signUp, completeOnboarding } = useAuth();
+  const { signUp, completeOnboarding, updateOnboardingProfile, user } = useAuth();
   const [step, setStep] = useState(1);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -24,7 +24,8 @@ export default function HostSetupScreen() {
   const [orgName, setOrgName] = useState('');
   const [orgRole, setOrgRole] = useState('');
   const [school, setSchool] = useState('');
-  const [city, setCity] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [hostBio, setHostBio] = useState('');
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
   const [budgetMin, setBudgetMin] = useState('');
   const [budgetMax, setBudgetMax] = useState('');
@@ -32,7 +33,7 @@ export default function HostSetupScreen() {
 
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
   const botPad = Platform.OS === 'web' ? 34 : insets.bottom;
-  const totalSteps = 2;
+  const totalSteps = 3;
 
   const toggle = (arr: string[], item: string, setter: (v: string[]) => void) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -40,9 +41,25 @@ export default function HostSetupScreen() {
   };
 
   const handleFinish = async () => {
+    if (!user && (!name || !email)) {
+      Alert.alert('Missing Info', 'Please enter your name and email.');
+      return;
+    }
     setLoading(true);
     try {
-      await signUp(name || 'New Host', email || 'host@crewcast.com', password, 'host');
+      const profileData = {
+        organization: orgName,
+        orgRole,
+        school,
+        contactEmail: contactEmail || email,
+        hostBio,
+        eventTypes: selectedEventTypes,
+      };
+      if (!user) {
+        await signUp(name, email, password, 'host', profileData);
+      } else {
+        await updateOnboardingProfile(profileData);
+      }
       await completeOnboarding();
       router.replace('/(tabs)');
     } catch {
@@ -76,14 +93,31 @@ export default function HostSetupScreen() {
             <Ionicons name="calendar" size={28} color="#fff" />
           </LinearGradient>
           <Text style={styles.stepTitle}>Your host profile</Text>
-          <Text style={styles.stepSubtitle}>Tell crew who you are and what you host</Text>
+          <Text style={styles.stepSubtitle}>Step 1 of {totalSteps} — Basic info</Text>
+          {!user && (
+            <>
+              {[
+                { label: 'Your Name *', value: name, setter: setName, placeholder: 'Jessica McCall' },
+                { label: 'Email *', value: email, setter: setEmail, placeholder: 'you@email.com' },
+                { label: 'Password', value: password, setter: setPassword, placeholder: 'Create a password', secure: true },
+              ].map(f => (
+                <View key={f.label} style={styles.inputGroup}>
+                  <Text style={styles.label}>{f.label}</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={f.value}
+                    onChangeText={f.setter}
+                    placeholder={f.placeholder}
+                    placeholderTextColor={colors.textMuted}
+                    secureTextEntry={f.secure}
+                  />
+                </View>
+              ))}
+            </>
+          )}
           {[
-            { label: 'Your Name', value: name, setter: setName, placeholder: 'Jessica McCall' },
-            { label: 'Email', value: email, setter: setEmail, placeholder: 'you@email.com' },
-            { label: 'Password', value: password, setter: setPassword, placeholder: 'Create a password' },
-            { label: 'Organization / Club Name', value: orgName, setter: setOrgName, placeholder: 'NYU Greek Council' },
+            { label: 'Organization / Group Name *', value: orgName, setter: setOrgName, placeholder: 'NYU Greek Council' },
             { label: 'School / Company', value: school, setter: setSchool, placeholder: 'NYU, Columbia, etc.' },
-            { label: 'City / Campus Area', value: city, setter: setCity, placeholder: 'New York, NY' },
           ].map(f => (
             <View key={f.label} style={styles.inputGroup}>
               <Text style={styles.label}>{f.label}</Text>
@@ -93,27 +127,27 @@ export default function HostSetupScreen() {
                 onChangeText={f.setter}
                 placeholder={f.placeholder}
                 placeholderTextColor={colors.textMuted}
-                secureTextEntry={f.label === 'Password'}
               />
             </View>
           ))}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Your Role</Text>
-            <View style={styles.chipGrid}>
-              {ORG_ROLES.map(r => (
-                <Pressable key={r} onPress={() => setOrgRole(r)} style={[styles.chip, orgRole === r && styles.chipActive]}>
-                  <Text style={[styles.chipText, orgRole === r && styles.chipTextActive]}>{r}</Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
         </View>
       )}
 
       {step === 2 && (
         <View style={styles.stepContent}>
-          <Text style={styles.stepTitle}>Event preferences</Text>
-          <Text style={styles.stepSubtitle}>What types of events do you host?</Text>
+          <Text style={styles.stepTitle}>About your events</Text>
+          <Text style={styles.stepSubtitle}>Step 2 of {totalSteps} — Your role & events</Text>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Your Role</Text>
+            <View style={styles.chipGrid}>
+              {ORG_ROLES.map(r => (
+                <Pressable key={r} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setOrgRole(r); }} style={[styles.chip, orgRole === r && styles.chipActive]}>
+                  <Text style={[styles.chipText, orgRole === r && styles.chipTextActive]}>{r}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+          <Text style={[styles.label, { marginTop: spacing.sm }]}>What types of events do you host?</Text>
           <View style={styles.chipGrid}>
             {EVENT_TYPES.map(et => (
               <Pressable key={et} onPress={() => toggle(selectedEventTypes, et, setSelectedEventTypes)} style={[styles.chip, selectedEventTypes.includes(et) && styles.chipActive]}>
@@ -121,15 +155,54 @@ export default function HostSetupScreen() {
               </Pressable>
             ))}
           </View>
-          <Text style={[styles.label, { marginTop: spacing.md }]}>Budget Range</Text>
+          <Text style={[styles.label, { marginTop: spacing.md }]}>Budget Range (optional)</Text>
           <View style={styles.budgetRow}>
             <View style={[styles.inputGroup, { flex: 1 }]}>
               <TextInput style={styles.input} value={budgetMin} onChangeText={setBudgetMin} placeholder="$500" placeholderTextColor={colors.textMuted} keyboardType="numeric" />
             </View>
-            <Text style={styles.label}>–</Text>
+            <Text style={styles.label}>to</Text>
             <View style={[styles.inputGroup, { flex: 1 }]}>
               <TextInput style={styles.input} value={budgetMax} onChangeText={setBudgetMax} placeholder="$5000" placeholderTextColor={colors.textMuted} keyboardType="numeric" />
             </View>
+          </View>
+        </View>
+      )}
+
+      {step === 3 && (
+        <View style={styles.stepContent}>
+          <Text style={styles.stepTitle}>Contact & Bio</Text>
+          <Text style={styles.stepSubtitle}>Step 3 of {totalSteps} — Final details</Text>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Contact Email</Text>
+            <TextInput
+              style={styles.input}
+              value={contactEmail}
+              onChangeText={setContactEmail}
+              placeholder="events@yourorg.com"
+              placeholderTextColor={colors.textMuted}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Host Bio</Text>
+            <TextInput
+              style={[styles.input, styles.textarea]}
+              value={hostBio}
+              onChangeText={setHostBio}
+              placeholder="Tell crew about your organization and the events you run..."
+              placeholderTextColor={colors.textMuted}
+              multiline
+              numberOfLines={4}
+            />
+          </View>
+
+          <View style={[styles.reviewCard, shadow.card]}>
+            <Text style={styles.reviewTitle}>Profile Preview</Text>
+            {(name || user?.name) ? <Text style={styles.reviewItem}>{name || user?.name}</Text> : null}
+            {orgName ? <Text style={styles.reviewMeta}>{orgName}{orgRole ? ` · ${orgRole}` : ''}</Text> : null}
+            {school ? <Text style={styles.reviewMeta}>{school}</Text> : null}
+            {selectedEventTypes.length > 0 && <Text style={styles.reviewMeta}>Events: {selectedEventTypes.join(', ')}</Text>}
           </View>
         </View>
       )}
@@ -145,7 +218,7 @@ export default function HostSetupScreen() {
       >
         <LinearGradient colors={['#CDB9FF', '#A89EFF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.ctaBtnGrad}>
           <Text style={styles.ctaBtnText}>{step < totalSteps ? 'Continue' : loading ? 'Setting up...' : "Start Hosting!"}</Text>
-          <Ionicons name="arrow-forward" size={18} color="#fff" />
+          <Ionicons name={step < totalSteps ? 'arrow-forward' : 'checkmark'} size={18} color="#fff" />
         </LinearGradient>
       </Pressable>
     </ScrollView>
@@ -158,7 +231,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surfaceCard, alignItems: 'center', justifyContent: 'center' },
   progressBar: { flexDirection: 'row', gap: 8 },
-  progressDot: { width: 40, height: 6, borderRadius: 3, backgroundColor: colors.borderSubtle },
+  progressDot: { width: 32, height: 6, borderRadius: 3, backgroundColor: colors.borderSubtle },
   progressDotActive: { backgroundColor: colors.accentLavender },
   stepContent: { gap: spacing.md },
   iconCircle: { width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' },
@@ -167,12 +240,20 @@ const styles = StyleSheet.create({
   inputGroup: { gap: 6 },
   label: { ...typography.bodyMedium, color: colors.textSecondary, fontFamily: 'Inter_600SemiBold' },
   input: { backgroundColor: colors.surfaceCard, borderRadius: radius.small, paddingHorizontal: spacing.md, paddingVertical: 14, fontSize: 15, color: colors.textPrimary, fontFamily: 'Inter_400Regular', borderWidth: 1.5, borderColor: colors.borderSubtle },
+  textarea: { minHeight: 100, textAlignVertical: 'top' },
   chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.chip, backgroundColor: colors.surfaceCard, borderWidth: 1.5, borderColor: colors.borderSubtle },
   chipActive: { backgroundColor: colors.accentLavender, borderColor: colors.accentLavender },
   chipText: { fontSize: 13, fontFamily: 'Inter_500Medium', color: colors.textSecondary },
   chipTextActive: { color: '#fff' },
   budgetRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  reviewCard: {
+    backgroundColor: colors.surfaceCard, borderRadius: radius.card,
+    padding: spacing.md, gap: spacing.sm, marginTop: spacing.sm,
+  },
+  reviewTitle: { ...typography.sectionTitle, color: colors.textPrimary, fontFamily: 'Inter_700Bold' },
+  reviewItem: { fontSize: 16, fontFamily: 'Inter_600SemiBold', color: colors.textPrimary },
+  reviewMeta: { ...typography.meta, color: colors.textMuted, fontFamily: 'Inter_400Regular' },
   ctaBtn: {},
   ctaBtnGrad: { borderRadius: radius.button, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   ctaBtnText: { fontSize: 17, fontFamily: 'Inter_700Bold', color: '#fff' },

@@ -16,6 +16,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useNotifications } from '@/context/NotificationsContext';
 import { useChat } from '@/context/ChatContext';
 import { MockEvent } from '@/data/mockEvents';
+import { mockOrganizations, Organization } from '@/data/mockOrganizations';
 
 function EventHeroCard({ event, onPress }: { event: MockEvent; onPress: () => void }) {
   const roleCount = event.roles.length;
@@ -79,6 +80,47 @@ function RecommendedCard({ event, onPress }: { event: MockEvent; onPress: () => 
       <View style={styles.recCardRight}>
         <Text style={styles.recCardPay}>${minPay}+</Text>
         <Text style={styles.recCardPayLabel}>min pay</Text>
+      </View>
+    </Pressable>
+  );
+}
+
+const ORG_ICON_MAP: Record<string, string> = {
+  Tech: 'hardware-chip-outline',
+  Cultural: 'globe-outline',
+  Identity: 'heart-outline',
+  Arts: 'color-palette-outline',
+  Sports: 'football-outline',
+  Academic: 'school-outline',
+  'Pre-Professional': 'briefcase-outline',
+  'Student Government': 'flag-outline',
+};
+
+const ORG_COLOR_MAP: Record<string, string> = {
+  Tech: colors.accentBlue,
+  Cultural: colors.accentPeach,
+  Identity: colors.accentPrimary,
+  Arts: colors.accentLavender,
+  Sports: colors.accentMint,
+  Academic: colors.starGold,
+  'Pre-Professional': colors.accentBlue,
+  'Student Government': colors.accentLavender,
+};
+
+function OrgCard({ org, onPress }: { org: Organization; onPress: () => void }) {
+  const catColor = ORG_COLOR_MAP[org.category] || colors.textMuted;
+  const iconName = ORG_ICON_MAP[org.category] || 'business-outline';
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.orgCard, shadow.card, { transform: [{ scale: pressed ? 0.97 : 1 }] }]}
+    >
+      <View style={[styles.orgCardIcon, { backgroundColor: catColor + '20' }]}>
+        <Ionicons name={iconName as any} size={22} color={catColor} />
+      </View>
+      <Text style={styles.orgCardName} numberOfLines={2}>{org.name}</Text>
+      <View style={[styles.orgCardBadge, { backgroundColor: catColor + '18' }]}>
+        <Text style={[styles.orgCardBadgeText, { color: catColor }]}>{org.category}</Text>
       </View>
     </Pressable>
   );
@@ -216,6 +258,21 @@ export default function HomeScreen() {
             </ScrollView>
           </View>
 
+          {/* Organizations */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Organizations</Text>
+              <Pressable onPress={() => router.push('/organizations')}>
+                <Text style={styles.seeAll}>See all</Text>
+              </Pressable>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.orgScroll}>
+              {mockOrganizations.slice(0, 8).map(org => (
+                <OrgCard key={org.id} org={org} onPress={() => router.push(`/organizations/${org.id}`)} />
+              ))}
+            </ScrollView>
+          </View>
+
           {/* Recommended Events */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -291,6 +348,13 @@ const styles = StyleSheet.create({
   recCardRight: { alignItems: 'flex-end', gap: 1 },
   recCardPay: { fontSize: 18, fontFamily: 'Inter_700Bold', color: colors.accentPrimary },
   recCardPayLabel: { ...typography.meta, color: colors.textMuted, fontFamily: 'Inter_400Regular' },
+  // Org Card
+  orgScroll: { gap: spacing.sm, paddingRight: spacing.sm },
+  orgCard: { backgroundColor: colors.surfaceCard, borderRadius: radius.card, padding: spacing.md, alignItems: 'center', gap: spacing.xs, width: 140 },
+  orgCardIcon: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  orgCardName: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: colors.textPrimary, textAlign: 'center', lineHeight: 17 },
+  orgCardBadge: { borderRadius: radius.chip, paddingHorizontal: 8, paddingVertical: 2, marginTop: 2 },
+  orgCardBadgeText: { fontSize: 10, fontFamily: 'Inter_500Medium' },
   // Worker Card
   workerScroll: { gap: spacing.sm, paddingRight: spacing.sm },
   workerCard: { backgroundColor: colors.surfaceCard, borderRadius: radius.card, padding: spacing.md, alignItems: 'center', gap: spacing.xs, width: 130 },

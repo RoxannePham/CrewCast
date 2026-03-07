@@ -14,8 +14,8 @@ import { useAuth } from '@/context/AuthContext';
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const { signIn } = useAuth();
-  const [email, setEmail] = useState('alex@nyu.edu');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +23,10 @@ export default function LoginScreen() {
   const botPad = Platform.OS === 'web' ? 34 : insets.bottom;
 
   const handleLogin = async () => {
-    if (!email || !password) return;
+    if (!email || !password) {
+      Alert.alert('Missing Fields', 'Please enter your email and password.');
+      return;
+    }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     try {
@@ -31,6 +34,19 @@ export default function LoginScreen() {
       router.replace('/(tabs)');
     } catch (e) {
       Alert.alert('Error', 'Login failed. Try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setLoading(true);
+    try {
+      await signIn('alex@nyu.edu', 'demo');
+      router.replace('/(tabs)');
+    } catch (e) {
+      Alert.alert('Error', 'Demo login failed.');
     } finally {
       setLoading(false);
     }
@@ -106,13 +122,22 @@ export default function LoginScreen() {
           </View>
 
           <Pressable
-            onPress={() => router.push('/onboarding')}
+            onPress={() => router.push('/auth/signup')}
             style={[styles.signupBtn, shadow.card]}
           >
             <Text style={styles.signupBtnText}>Create an account</Text>
           </Pressable>
 
-          <Text style={styles.demoHint}>Demo: Use alex@nyu.edu / any password</Text>
+          <Pressable
+            onPress={handleDemoLogin}
+            disabled={loading}
+            style={({ pressed }) => [styles.demoBtn, { opacity: pressed ? 0.8 : 1 }]}
+          >
+            <Ionicons name="flash-outline" size={16} color={colors.accentPrimary} />
+            <Text style={styles.demoBtnText}>Quick Demo Login</Text>
+          </Pressable>
+
+          <Text style={styles.demoHint}>Demo account: alex@nyu.edu</Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -156,5 +181,12 @@ const styles = StyleSheet.create({
     paddingVertical: 14, alignItems: 'center',
   },
   signupBtnText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: colors.textPrimary },
+  demoBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    paddingVertical: 12, borderRadius: radius.button,
+    borderWidth: 1.5, borderColor: colors.accentPrimary + '40',
+    backgroundColor: colors.accentPrimary + '08',
+  },
+  demoBtnText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: colors.accentPrimary },
   demoHint: { ...typography.meta, color: colors.textMuted, textAlign: 'center', fontFamily: 'Inter_400Regular' },
 });

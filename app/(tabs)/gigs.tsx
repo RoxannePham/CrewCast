@@ -181,9 +181,16 @@ export default function GigsScreen() {
             item={item}
             applied={appliedRoles.has(item.id)}
             onApply={() => {
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-              applyToRole(item.id, item.eventId);
-              Alert.alert('Applied!', `You applied for ${item.roleType} at ${item.event.title}. Good luck!`);
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              const result = applyToRole(item.id, item.eventId);
+              if (result.success) {
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                Alert.alert('Applied!', `You applied for ${item.roleType} at ${item.event.title}. Good luck!`);
+              } else if (result.reason === 'already_applied') {
+                Alert.alert('Already Applied', 'You have already applied for this role.');
+              } else if (result.reason === 'host_user') {
+                Alert.alert('Host Account', 'Switch to a worker account to apply for gigs.');
+              }
             }}
             onViewEvent={() => router.push(`/event/${item.eventId}`)}
           />

@@ -235,8 +235,15 @@ export default function EventDetailScreen() {
                   applicants={roleApps.length}
                   onApply={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                    applyToRole(role.id, event.id);
-                    Alert.alert('Applied!', `You applied for ${role.roleType}. The host will review your profile.`);
+                    const result = applyToRole(role.id, event.id);
+                    if (result.success) {
+                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                      Alert.alert('Applied!', `You applied for ${role.roleType}. The host will review your profile.`);
+                    } else if (result.reason === 'already_applied') {
+                      Alert.alert('Already Applied', 'You have already applied for this role.');
+                    } else if (result.reason === 'host_user') {
+                      Alert.alert('Host Account', 'Switch to a worker account to apply for gigs.');
+                    }
                   }}
                 />
               );

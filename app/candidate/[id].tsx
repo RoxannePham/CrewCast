@@ -15,13 +15,27 @@ import { Chip } from '@/components/ui/Chip';
 import { Badge } from '@/components/ui/Badge';
 import { mockWorkers } from '@/data/mockUsers';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
+
+const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
+  pending: { bg: colors.accentPeach + '30', text: '#8B5A00' },
+  shortlisted: { bg: colors.accentLavender + '30', text: '#5B2B8F' },
+  booked: { bg: colors.accentMint + '30', text: '#1A6635' },
+  accepted: { bg: colors.accentMint + '30', text: '#1A6635' },
+  declined: { bg: colors.accentPrimary + '20', text: '#AA2244' },
+  messaged: { bg: colors.accentBlue + '30', text: '#1A4D80' },
+  withdrawn: { bg: colors.borderSubtle, text: colors.textMuted },
+};
 
 export default function CandidateDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const { bookWorker, bookedWorkers } = useApp();
+  const { bookWorker, bookedWorkers, getApplicationsByWorker } = useApp();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'reviews' | 'stats'>('profile');
   const [booked, setBooked] = useState(false);
+
+  const isHost = user?.type === 'host';
 
   const worker = mockWorkers.find(w => w.id === id);
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
@@ -37,7 +51,7 @@ export default function CandidateDetailScreen() {
   }
 
   const isBooked = booked || bookedWorkers.has(worker.id);
-
+  const workerApps = getApplicationsByWorker(worker.id);
   const reliabilityPct = Math.round(worker.reliabilityScore * 100);
 
   return (
@@ -142,6 +156,72 @@ export default function CandidateDetailScreen() {
                   <Pressable style={styles.linkRow}>
                     <Feather name="music" size={16} color={colors.textPrimary} />
                     <Text style={styles.linkText}>{worker.socialLinks.tiktok}</Text>
+                  </Pressable>
+                )}
+              </View>
+            )}
+
+            {workerApps.length > 0 && (
+              <View style={[styles.card, shadow.card]}>
+                <Text style={styles.cardTitle}>Applications ({workerApps.length})</Text>
+                {workerApps.map(app => {
+                  const statusColor = STATUS_COLORS[app.status] || STATUS_COLORS.pending;
+                  return (
+                    <View key={app.id} style={styles.appRow}>
+                      <View style={styles.appRowLeft}>
+                        <View style={[styles.statusDot, { backgroundColor: statusColor.text }]} />
+                        <View style={styles.appRowInfo}>
+                          <Text style={styles.appRowNote} numberOfLines={2}>{app.note}</Text>
+                          <Text style={styles.appRowTime}>{app.appliedAt}</Text>
+                        </View>
+                      </View>
+                      <View style={[styles.statusBadge, { backgroundColor: statusColor.bg }]}>
+                        <Text style={[styles.statusBadgeText, { color: statusColor.text }]}>
+                          {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
+                {workerApps.some(a => a.resumeUri) && (
+                  <View style={styles.resumeIndicator}>
+                    <Ionicons name="document-text-outline" size={16} color={colors.accentPrimary} />
+                    <Text style={styles.resumeIndicatorText}>Resume attached</Text>
+                  </View>
+                )}
+                {workerApps.some(a => a.profileSummary) && (
+                  <View style={[styles.summaryCard]}>
+                    <Ionicons name="sparkles-outline" size={16} color={colors.accentLavender} />
+                    <View style={styles.summaryInfo}>
+                      <Text style={styles.summaryTitle}>Profile Summary</Text>
+                      <Text style={styles.summaryText}>
+                        {workerApps.find(a => a.profileSummary)?.profileSummary}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+                {workerApps.some(a => a.portfolioUrl) && (
+                  <Pressable
+                    onPress={() => {
+                      const url = workerApps.find(a => a.portfolioUrl)?.portfolioUrl;
+                      if (url) Linking.openURL(url.startsWith('http') ? url : `https://${url}`);
+                    }}
+                    style={styles.linkRow}
+                  >
+                    <Ionicons name="globe-outline" size={16} color={colors.accentBlue} />
+                    <Text style={styles.linkText}>{workerApps.find(a => a.portfolioUrl)?.portfolioUrl}</Text>
+                  </Pressable>
+                )}
+                {workerApps.some(a => a.linkedinUrl) && (
+                  <Pressable
+                    onPress={() => {
+                      const url = workerApps.find(a => a.linkedinUrl)?.linkedinUrl;
+                      if (url) Linking.openURL(url.startsWith('http') ? url : `https://${url}`);
+                    }}
+                    style={styles.linkRow}
+                  >
+                    <Ionicons name="logo-linkedin" size={16} color="#0A66C2" />
+                    <Text style={styles.linkText}>{workerApps.find(a => a.linkedinUrl)?.linkedinUrl}</Text>
                   </Pressable>
                 )}
               </View>
@@ -306,4 +386,18 @@ const styles = StyleSheet.create({
   bookBtnBooked: {},
   bookBtnGrad: { paddingVertical: 12, paddingHorizontal: spacing.lg, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: radius.button },
   bookBtnText: { fontSize: 15, fontFamily: 'Inter_700Bold', color: '#fff' },
+  appRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.borderSubtle },
+  appRowLeft: { flex: 1, flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
+  statusDot: { width: 8, height: 8, borderRadius: 4, marginTop: 5 },
+  appRowInfo: { flex: 1, gap: 2 },
+  appRowNote: { ...typography.body, color: colors.textSecondary, fontFamily: 'Inter_400Regular', lineHeight: 18 },
+  appRowTime: { ...typography.meta, color: colors.textMuted, fontFamily: 'Inter_400Regular' },
+  statusBadge: { borderRadius: radius.chip, paddingHorizontal: 10, paddingVertical: 3, marginLeft: spacing.sm },
+  statusBadgeText: { fontSize: 11, fontFamily: 'Inter_600SemiBold' },
+  resumeIndicator: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.accentPrimary + '10', borderRadius: radius.small, padding: spacing.sm, marginTop: 4 },
+  resumeIndicatorText: { ...typography.body, color: colors.accentPrimary, fontFamily: 'Inter_500Medium' },
+  summaryCard: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, backgroundColor: colors.accentLavender + '10', borderRadius: radius.small, padding: spacing.sm, marginTop: 4 },
+  summaryInfo: { flex: 1, gap: 2 },
+  summaryTitle: { ...typography.bodyMedium, color: colors.textPrimary, fontFamily: 'Inter_600SemiBold' },
+  summaryText: { ...typography.meta, color: colors.textSecondary, fontFamily: 'Inter_400Regular', lineHeight: 18 },
 });
