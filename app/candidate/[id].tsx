@@ -179,7 +179,6 @@ export default function CandidateDetailScreen() {
                 { icon: 'school-outline' as const, label: worker.school },
                 { icon: 'location-outline' as const, label: worker.city },
                 { icon: 'calendar-outline' as const, label: `Available: ${worker.availability.join(', ')}` },
-                { icon: 'cash-outline' as const, label: worker.payPreference },
                 { icon: 'briefcase-outline' as const, label: `${worker.yearsExperience} yrs experience` },
               ].filter(i => !!i.label).map((item, idx) => (
                 <View key={idx} style={styles.detailRow}>

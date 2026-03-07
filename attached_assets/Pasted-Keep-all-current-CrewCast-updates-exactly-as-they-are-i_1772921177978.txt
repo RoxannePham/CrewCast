@@ -1,0 +1,110 @@
+Keep all current CrewCast updates exactly as they are, including:
+- login validation
+- profile photo uploads
+- My Applications showing real event names
+- organizations system
+- mock/protected payment flow
+- all existing UI polish, routing, and state logic
+
+Do NOT revert or break any working features.
+
+I need you to make two content/UX improvements across the app:
+
+==================================================
+1. REMOVE PAYMENT METHOD TEXT FROM ALL USER PROFILES
+==================================================
+
+Problem:
+User profiles still show outdated payment method wording such as:
+- "Cash or Venmo"
+
+This is incorrect because CrewCast now uses platform-controlled protected payments. Payment method should NOT appear as a user preference on profiles.
+
+What to do:
+- remove the payment method row from every user/talent profile
+- remove any related icon for that row
+- do not show "Cash or Venmo", "Venmo", "CashApp", "cash payment", or any off-platform payment wording on profile pages
+- remove or ignore any profile fields like:
+  - paymentMethod
+  - paymentPreference
+  - paymentType
+- do not replace it with another payment line on profiles
+- profiles should only show actual profile attributes such as:
+  - school
+  - location
+  - availability
+  - experience
+  - skills
+  - stats
+  - reviews
+
+Expected result:
+The Details section should no longer contain any payment-method-related text for any user.
+
+==================================================
+2. GENERATE MORE REALISTIC IMAGES FOR EVENTS AND USERS
+==================================================
+
+Problem:
+Right now only some events and some users have populated images. The app feels incomplete because many cards/screens still have missing or repeated placeholders.
+
+Goal:
+Populate the app so it feels full and realistic.
+
+What to do for EVENTS:
+- generate or assign realistic cover/banner images for the events already available in the app
+- make sure nearly all existing event listings have an image
+- use imagery that matches the event type/category and feels believable for a college/student creator + nightlife + campus opportunity marketplace
+- event images should feel candid, modern, and premium
+- avoid obvious generic placeholder blocks where possible
+- maintain consistency in aspect ratio, sizing, cropping, and style across event cards and detail screens
+
+Examples of event image vibe:
+- student DJs performing
+- campus club nights
+- creators filming content
+- student photographers shooting events
+- brand ambassador activations
+- networking mixers
+- student fashion/lifestyle scenes
+- small concert / event production scenes
+- nightlife/campus social scenes
+- event staffing / hospitality / promo scenes
+
+What to do for USERS:
+- generate or assign profile pictures for most or all existing users in the dataset
+- make the user photos look like real, candid, diverse young adults / college-age users
+- use polished but natural profile photos
+- make them feel like actual users on a marketplace, not stock avatars
+- ensure variety across gender presentation, race/ethnicity, style, fashion, pose, and background
+- keep the visual tone realistic, social, friendly, and premium
+- avoid duplicate-looking faces or obviously repeated placeholder images
+- preserve any user photos that are already good unless they need consistency updates
+
+Important visual requirements:
+- images should feel coherent across the whole app
+- maintain a realistic Gen Z / college / creator economy / campus nightlife aesthetic
+- keep the app looking premium, social, and believable
+- use fixed seeded/generated mock images if needed so the visuals remain stable in development
+- make sure missing images are filled throughout list views, profile screens, event detail screens, and any related cards already supported by the UI
+
+Implementation expectations:
+- update the mock data / seed data / image assignment logic so the app consistently shows populated visuals
+- ensure image URIs/paths are wired correctly so they actually render
+- do not leave most users or events blank
+- if there are fallback systems, keep them, but prioritize assigning actual mock images to most records
+- keep performance reasonable and avoid breaking existing layouts
+
+==================================================
+DELIVERABLE EXPECTATIONS
+==================================================
+
+Please implement the changes directly in the codebase and keep the app functional.
+
+When done, report back with:
+- which files were changed
+- how profile payment-method text was removed globally
+- how event images are now populated
+- how user images are now populated
+- any new mock data/image helpers or seed logic added
+- confirmation that existing working features were preserved
