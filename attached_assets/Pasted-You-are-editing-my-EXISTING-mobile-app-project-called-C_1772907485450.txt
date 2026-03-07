@@ -1,0 +1,363 @@
+You are editing my EXISTING mobile app project called CrewCast.
+
+CRITICAL INSTRUCTIONS:
+- Do NOT rebuild the app from scratch.
+- Work inside the current Expo + React Native + TypeScript codebase.
+- Preserve the current design language, navigation patterns, and reusable component structure unless changes are required for the new flows.
+- Reuse existing contexts, routes, cards, and UI components wherever possible.
+- Keep all code modular, typed, and production-leaning.
+- Use mock/local data where backend is not implemented yet.
+- Do not leave major flows half-wired. Fully connect the front-end behavior using local state and mock data.
+- If something is partially implemented already, finish it properly instead of duplicating it.
+
+PROJECT CONTEXT:
+CrewCast is a mobile app for students to discover gigs, join event crews, apply to opportunities, and connect with organizations. It should feel like a mix of crew hiring, campus networking, and opportunity discovery.
+
+I need you to implement the following in one pass:
+
+==================================================
+A. FIRST-OPEN APP FLOW
+==================================================
+
+When the app opens for the first time:
+1. Show a branded splash / launch screen with the CrewCast logo centered.
+2. After a short polished transition, route to login if the user is not authenticated.
+3. If the user is already authenticated, go directly into the main app.
+4. Keep auth state persistent using the existing AuthContext or an improved version of it.
+
+Requirements:
+- Add a clean splash/logo screen
+- Smooth transition timing
+- No broken flicker between routes
+- Correct routing on cold app open
+- Handle authenticated vs unauthenticated users properly
+
+==================================================
+B. LOGIN + SIGN UP + ONBOARDING
+==================================================
+
+The login flow must be more complete.
+
+LOGIN SCREEN:
+- Email input
+- Password input
+- Log In button
+- Create Account button
+- Optional demo/dev login button if helpful for testing
+
+SIGN UP SCREEN:
+- Full name
+- Email
+- Password
+- Role selection:
+  - Worker / Crew Member
+  - Host / Organizer
+- Profile photo placeholder
+- School
+- Organization / company (optional)
+- Major / field
+- Skills / interests
+- Short bio
+- Resume / CV upload placeholder
+
+ONBOARDING REQUIREMENTS:
+Workers must be able to either:
+A. Upload a resume / CV
+OR
+B. Answer prompts that explain what they do and their experience
+
+Build this so both options are supported.
+
+WORKER PROMPTS:
+- What kind of work do you do?
+- What events, teams, or organizations have you worked with before?
+- What are your strongest skills?
+- What roles are you looking for?
+- What tools or platforms do you know?
+- What is your experience level?
+- Portfolio / LinkedIn / website (optional)
+
+If they do NOT upload a resume:
+- Generate a strong profile summary from their answers
+- Save that summary to profile state
+- Use that summary later in applications
+
+HOST ONBOARDING:
+- Organization / company name
+- Role/title
+- School
+- Type of events hosted
+- Contact info
+- Short host bio
+
+FLOW RULES:
+- New user signs up
+- Selects role
+- Completes onboarding
+- Lands in main app after onboarding
+- Prevent incomplete onboarding from silently passing through
+
+==================================================
+C. FIX THE APPLY BUTTON COMPLETELY
+==================================================
+
+The Apply button must actually work across the app.
+
+Current expected behavior:
+- If user is NOT logged in:
+  - Redirect to login
+- If user IS logged in but onboarding/profile is incomplete:
+  - Redirect to complete profile/onboarding
+  - Show a helpful message like “Complete your profile before applying”
+- If user is a worker and eligible:
+  - Tap Apply
+  - Create application entry
+  - Attach their stored resume/CV if it exists
+  - Otherwise attach their onboarding summary/prompts
+  - Save application in local/mock state
+  - Show success state
+- If already applied:
+  - Button becomes “Applied” and is disabled
+- If current user is a host:
+  - Hide Apply button entirely
+
+The application object should include:
+- application id
+- applicant id
+- event id
+- applicant name
+- profile photo
+- school
+- major/field
+- skills
+- short bio
+- resume url or resume placeholder
+- onboarding summary
+- portfolio / LinkedIn if provided
+- submittedAt timestamp
+- status = pending by default
+
+Also update host-side views:
+- Host can see the application details
+- Host can see whether submission includes resume or profile summary
+- Candidate/applicant detail screens show the submitted material clearly
+
+Apply logic must work consistently in:
+- event cards
+- gig cards
+- event detail pages
+- any place with an Apply CTA
+
+==================================================
+D. ADD AN “ORGANIZATIONS” DIRECTORY
+==================================================
+
+IMPORTANT:
+This feature should be called “Organizations” — NOT “Clubs”.
+
+Reason:
+It needs to include clubs, cultural orgs, assemblies, pre-professional orgs, student groups, and campus communities. “Organizations” is broader and better.
+
+Feature purpose:
+If an organization has not posted opportunities in the app yet, students should still be able to discover them and reach out quickly through one central place instead of manually searching GetInvolved, Instagram, Linktree, etc.
+
+Build a new Organizations feature using LOCAL STATIC DATA for now.
+
+ORGANIZATIONS LIST SCREEN:
+- Screen title: “Organizations”
+- Search bar
+- Category filter chips
+- Scrollable organization cards
+- Each card should include:
+  - organization name
+  - category
+  - short description
+  - campus/school tag
+  - primary social/link
+- Card should feel polished and useful
+
+ORGANIZATION DETAIL SCREEN:
+- Name
+- Category
+- Campus
+- Description
+- Links section
+- CTA buttons:
+  - Open Instagram
+  - Open Linktree
+  - Open Website
+  - Contact
+  - View opportunities (placeholder/future state)
+
+Use the best link available per organization.
+Keep the data structure flexible so API integration can replace it later.
+
+==================================================
+E. SEED THE ORGANIZATIONS FEATURE WITH 20 REAL ENTRIES
+==================================================
+
+Create a file such as:
+data/mockOrganizations.ts
+
+Add structured typed data for these initial Rutgers organizations and links:
+
+1. Rutgers AI Club — https://linktr.ee/rutgersai
+2. Rutgers Data Science Club — https://linktr.ee/rutgersdatascience
+3. Rutgers Mobile App Development (RUMAD) — https://linktr.ee/rumad
+4. Rutgers Art & Design Club — https://linktr.ee/radrut
+5. Queer Student Alliance at Rutgers — https://linktr.ee/qsarutgers
+6. RU Inclusive — https://linktr.ee/ruinclusivenb
+7. Rutgers Women in ITI — https://linktr.ee/rutgerswomeninITI
+8. Latin American Student Organization — https://linktr.ee/lasorutgers
+9. Rutgers Pre-Dental Society — https://linktr.ee/rupds
+10. Rutgers Club Sports — https://linktr.ee/rutgersclubsports
+11. Rutgers Cognitive Science Club — https://linktr.ee/rucogsciclub
+12. RUSA — https://linktr.ee/rusa.nb
+13. Rutgers AI Club Instagram — https://www.instagram.com/rutgers.ai/
+14. Rutgers Black Student Union — https://www.instagram.com/rubsu/
+15. Rutgers FORM — https://www.instagram.com/rutgersform/
+16. Students Supporting Israel at Rutgers — https://www.instagram.com/ssi_rutgers/
+17. Rutgers Club Baseball — https://www.instagram.com/rutgersclubbaseball/
+18. Rutgers Club Gymnastics — https://www.instagram.com/ruclubgym/
+19. Rutgers Women’s Club Volleyball — https://www.instagram.com/ruclubvolleyball/
+20. Rutgers Club Men’s Basketball — https://www.instagram.com/rutgersclubball/
+
+For each entry include:
+- id
+- name
+- category
+- campus
+- short description
+- primaryLink
+- optional instagram
+- optional linktree
+- optional website
+- optional email
+- tags array
+
+Use sensible categories such as:
+- Tech
+- Cultural
+- Identity
+- Arts
+- Sports
+- Academic
+- Pre-Professional
+- Student Government
+
+Descriptions can be concise but should feel real.
+
+==================================================
+F. ROUTING + NAVIGATION INTEGRATION
+==================================================
+
+Integrate all flows into the existing app cleanly.
+
+Need routes/screens for:
+- Splash
+- Login
+- Sign up
+- Worker onboarding
+- Host onboarding
+- Organizations list
+- Organization detail
+
+Navigation expectations:
+- Preserve the existing main app structure
+- Add Organizations in the cleanest possible way:
+  - either as a new tab
+  - or as a featured section on the home screen with a “See all” route
+Choose the cleaner option based on the current router structure
+
+Make sure:
+- auth gating works
+- onboarding routes work
+- main tabs still work
+- no dead-end screens
+- route names remain clear and maintainable
+
+==================================================
+G. DATA + STATE MANAGEMENT
+==================================================
+
+Use and improve the existing project architecture.
+
+Needed:
+1. Auth state
+2. Onboarding completion state
+3. Resume/profile-summary state
+4. Applications state
+5. Organizations local data source
+
+Implement using existing Context patterns when possible.
+
+DATA RULES:
+- Resume upload can be mocked as a placeholder/local URI for now
+- If resume is missing, onboarding answers must still create a usable application profile
+- Keep all types explicit
+- Avoid magic strings
+- Add derived helper functions where useful
+
+==================================================
+H. UX REQUIREMENTS
+==================================================
+
+Make this feel polished and realistic.
+
+Include:
+- loading states
+- empty states
+- success confirmations
+- disabled states
+- already-applied state
+- incomplete-profile warnings
+- better CTA copy
+- role-aware logic
+
+Examples of useful UI messages:
+- “Complete your profile before applying”
+- “Resume attached”
+- “Profile summary attached”
+- “Application submitted”
+- “Already applied”
+- “No organizations found”
+- “Search organizations by name or category”
+
+Make the splash, login, onboarding, apply, and organizations flows feel intentionally designed.
+
+==================================================
+I. CODE QUALITY RULES
+==================================================
+
+Requirements:
+- TypeScript types/interfaces for all new models
+- Reusable components for repeated UI
+- No unnecessary duplication
+- Keep naming aligned with the current project
+- Maintain consistency with existing styling and theme files
+- Prefer small maintainable files over huge monoliths
+- Keep mock data cleanly separated from screens/components
+- Do not remove working existing features unless necessary
+
+==================================================
+J. DELIVERABLE EXPECTATIONS
+==================================================
+
+After implementing everything, provide a concise build summary that includes:
+- files created
+- files modified
+- routes added
+- contexts updated
+- what still uses mock/local data
+- what should later be connected to a real backend/API
+- any assumptions made
+
+FINAL GOAL:
+When a user opens CrewCast, they should see:
+1. Splash/logo
+2. Login or sign up
+3. Proper onboarding
+4. Ability to browse gigs
+5. Working Apply button
+6. A useful Organizations directory with Rutgers orgs and real links
+7. A polished, connected app experience without obvious broken flows
