@@ -73,6 +73,10 @@ You can import using `@/` to avoid relative paths (e.g., `import { Button } from
 Use react-native's `StyleSheet` for styling.
 
 ## Networking
+<<<<<<< HEAD
+=======
+
+>>>>>>> bfcc9b3a3fb244e17eb80cdc6e38a88f90e18901
 - Use `@/lib/query-client` for all data fetching.
   - Queries should not define their own queryFn — the default fetcher in `@/lib/query-client` is already configured. This only applies when the app's QueryClient is imported from `@/lib/query-client`; if the project still uses a bare `new QueryClient()`, migrate it first.
   - Mutations should use `apiRequest` from `@/lib/query-client` and invalidate cache by queryKey after.
@@ -86,6 +90,10 @@ Use react-native's `StyleSheet` for styling.
 Generate a custom app icon for the app. Read the mobile-ui skill's app-icon.md reference for guidelines.
 
 ## Workflow
+<<<<<<< HEAD
+=======
+
+>>>>>>> bfcc9b3a3fb244e17eb80cdc6e38a88f90e18901
 - The Expo App runs on port 8081. All web_application_feedback should go through port 8081 as that is where the user's app runs on
 - The Express backend runs on port 5000. It serves APIs for the app and a static landing page in server/templates/landing-page.html. Do NOT use port 5000 for web_application_feedback as it only serves the API and a landing page.
 - There are two workflows for this stack:

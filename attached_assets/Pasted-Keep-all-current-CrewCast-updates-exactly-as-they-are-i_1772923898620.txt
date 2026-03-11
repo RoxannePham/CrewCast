@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Keep all current CrewCast updates exactly as they are, including:
 - login validation
 - profile photo uploads
@@ -133,4 +134,141 @@ When done, report back with:
 - how the joined crew avatar circles were added
 - how the “Browse all” routing was corrected
 - how the event detail page now displays the event image
+=======
+Keep all current CrewCast updates exactly as they are, including:
+- login validation
+- profile photo uploads
+- My Applications showing real event names
+- organizations system
+- protected/mock payment flow
+- all current styling, routing, and state logic that already works
+
+Do NOT undo any working features.
+
+I need you to fix several event and navigation UI issues.
+
+==================================================
+1. FIX EVENT IMAGE CROPPING / ZOOM
+==================================================
+
+Problem:
+The event photos in cards are too zoomed in and do not show the full image properly. The current crop makes the event visuals feel cut off and less attractive.
+
+What I want:
+- make event cover images display more naturally
+- reduce the over-zoomed look
+- preserve the event image composition better
+- make sure the cards still look polished and premium
+
+Implementation direction:
+- review the event card image styling and container sizing
+- adjust image rendering so it does not feel aggressively cropped
+- use a better image fit strategy where appropriate
+- if needed, rebalance image height / aspect ratio / overlay layout so the image can breathe
+- keep text readable on top of the image
+
+Notes:
+- event cards should still look modern and premium
+- do not let the image become distorted
+- use a visually balanced treatment, not awkward letterboxing unless necessary
+- optimize both home/featured cards and any event list cards using cover images
+
+==================================================
+2. ADD CREW JOINING AVATARS TO EVENT CARDS
+==================================================
+
+Problem:
+The event cards currently do not show the joined crew count visually like overlapping circles/avatars.
+
+What I want:
+- add overlapping circular avatar previews in the event card corner, similar to the example
+- show a few joined crew profile photos in small overlapping circles
+- if there are more than shown, display a final circle like:
+  +4
+  +2
+  etc.
+- this should feel social and lively
+
+Behavior:
+- show 2–4 small overlapping profile circles depending on available space
+- if there are more joined crew members than shown, show a “+N” circle
+- use actual mock joined-user photos when available
+- if an event has no joined crew yet, either hide the cluster or show a clean fallback state
+- place this in a corner that does not conflict with the Tonight badge, text, time, or open roles chip
+
+Implementation:
+- use joined/accepted/attending mock users tied to each event if available
+- if needed, extend event mock data with attendee/joinedCrew user IDs
+- wire the avatar stack into event cards and optionally event detail header areas
+
+==================================================
+3. FIX "BROWSE ALL" UNDER TOP CREW IN YOUR AREA
+==================================================
+
+Problem:
+When clicking “Browse all” in the “Top Crew in Your Area” section, it incorrectly routes to Events instead of Crew.
+
+What I want:
+- make “Browse all” route to the crew/talent browsing screen
+- it should open the page that lists crew/users, not events
+- preserve any filters or context if needed, but the main fix is routing to the correct destination
+
+Implementation:
+- inspect the onPress/navigation handler for that CTA
+- make sure it navigates to the correct crew listing route/screen
+- do not break the existing event “See all” CTA
+
+Expected result:
+- “See all” for Tonight Near You → events list
+- “Browse all” for Top Crew in Your Area → crew/talent list
+
+==================================================
+4. ADD EVENT IMAGES TO THE EVENT DETAIL PAGE
+==================================================
+
+Problem:
+When opening an event page/detail screen, the event image is not shown. This makes the page less fun, less immersive, and less attractive.
+
+What I want:
+- display the event’s main cover image prominently on the event detail page
+- make the event detail page feel visually exciting and premium
+- the image should be near the top of the screen and integrated into the layout nicely
+
+Implementation direction:
+- add the event cover image to the event detail/header area
+- use the event’s existing image source from mock data if available
+- keep text and badges readable
+- maintain a premium event-marketplace feel
+- support image overlay / gradient if needed for readability
+- ensure scroll behavior still feels clean
+
+Design expectations:
+- event detail pages should feel more like a real marketplace / nightlife / campus event app
+- the image should help sell the vibe of the event
+- do not make the event detail page feel empty or text-only
+
+==================================================
+5. KEEP THE VISUAL SYSTEM CONSISTENT
+==================================================
+
+While implementing the above:
+- keep the same overall CrewCast design language
+- keep badges, chips, spacing, and typography consistent
+- do not make the UI feel crowded
+- maintain the premium/social/campus/nightlife aesthetic
+- make sure all screens still render correctly on mobile
+
+==================================================
+6. DELIVERABLE EXPECTATIONS
+==================================================
+
+Please implement the changes directly in the codebase and keep the app functional.
+
+When done, report back with:
+- which files were changed
+- how the event image cropping was fixed
+- how the joined crew avatar circles were added
+- how the “Browse all” routing was corrected
+- how the event detail page now displays the event image
+>>>>>>> bfcc9b3a3fb244e17eb80cdc6e38a88f90e18901
 - any data/model changes made to support joined crew previews
